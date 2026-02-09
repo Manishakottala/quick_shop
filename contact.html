@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Contact Us | QuickShop</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <h1 class="logo">QuickShop</h1>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Login</a></li>
+        <li><a href="#">Register</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contact Section -->
+    <section class="contact">
+      <h2>Contact Us</h2>
+      <p class="contact-text">
+        If you have any questions or need support, please fill in the form
+        below. Our team will respond as soon as possible.
+      </p>
+
+      <form class="contact-form" onsubmit="submitForm(event)">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" rows="5" required></textarea>
+        </div>
+
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2026 QuickShop. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
