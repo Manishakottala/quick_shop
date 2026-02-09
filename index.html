@@ -1,23 +1,47 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>My Changing Web Page!</title>
+  <meta charset="UTF-8" />
+  <title>QuickShop | Home</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-    <script>
-       function showMessage()
-       {
-           var name = document.getElementById("myText").value
-           document.write("Your name is"+name);
-       }
-    </script>
-    <from>
-        <input type="text"id="myText">
-        <input type="submit"onclick="showMessage()">
-    </from>
-    </from>
-</body>
 
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Buy & Sell Products Online Easily</h2>
+      <p>
+        QuickShop is a simple and secure e-commerce platform that allows
+        retailers to sell products and customers to shop conveniently.
+      </p>
+      <button onclick="shopNow()">Shop Now</button>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <h3>Why Choose QuickShop?</h3>
+
+    <div class="feature-container">
+      <div class="feature-card">
+        <h4>Easy Shopping</h4>
+        <p>Browse and compare products with ease.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4>Secure Login</h4>
+        <p>Safe and reliable user authentication.</p>
+      </div>
+
+      <div class="feature-card">
+        <h4>Retailer Friendly</h4>
+        <p>Manage products using full CRUD operations.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <script src="script.js"></script>
+</body>
 </html>
