@@ -107,3 +107,41 @@ footer {
   padding: 15px;
   margin-top: 40px;
 }
+
+
+/* About Page */
+.about {
+  padding: 80px 40px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.about-text {
+  max-width: 800px;
+  margin: 0 auto 20px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.about-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.about-card {
+  background-color: #f4f6f8;
+  padding: 25px;
+  width: 260px;
+  border-radius: 8px;
+}
+
+.about-card h3 {
+  margin-bottom: 10px;
+}
