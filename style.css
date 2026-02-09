@@ -10,6 +10,33 @@ body {
   color: #333;
 }
 
+/* Navbar */
+.navbar {
+  background-color: #1e88e5;
+  padding: 15px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: #fff;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+}
+
+.nav-links li {
+  margin-left: 20px;
+}
+
+.nav-links a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
 
 /* Hero */
 .hero {
@@ -70,4 +97,13 @@ body {
 
 .feature-card h4 {
   margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+  background-color: #1e88e5;
+  color: #fff;
+  text-align: center;
+  padding: 15px;
+  margin-top: 40px;
 }
