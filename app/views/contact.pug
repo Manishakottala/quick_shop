@@ -1,0 +1,32 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title Contact Us | QuickShop
+    link(rel="stylesheet" href="style.css")
+  body
+    include navbar.pug
+
+    // Contact Section
+    section.contact
+      h2 Contact Us
+      p.contact-text If you have any questions or need support, please fill in the form below. Our team will respond as soon as possible.
+
+      form.contact-form(onsubmit="submitForm(event)")
+        .form-group
+          label(for="name") Full Name
+          input(type="text" id="name" required)
+
+        .form-group
+          label(for="email") Email Address
+          input(type="email" id="email" required)
+
+        .form-group
+          label(for="message") Message
+          textarea(id="message" rows="5" required)
+
+        button(type="submit") Send Message
+
+    // Footer
+    footer
+      p © 2026 QuickShop. All rights reserved.

@@ -1,0 +1,32 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title About Us | QuickShop
+    link(rel="stylesheet" href="style.css")
+  body
+    include navbar.pug
+
+    // About Section
+    section.about
+      h2 About QuickShop
+      p.about-text QuickShop is a web-based e-commerce platform designed to simplify online buying and selling of products. The platform enables retailers to manage their products efficiently while providing customers with a secure and convenient shopping experience.
+
+      p.about-text The system is developed using modern web technologies and follows best practices in usability, security, and data management. QuickShop supports user authentication and full CRUD operations to ensure reliable and structured product handling.
+
+      .about-cards
+        .about-card
+          h3 Our Purpose
+          p To provide a simple, secure, and accessible e-commerce platform for both retailers and customers.
+
+        .about-card
+          h3 Our Vision
+          p To improve online shopping experiences through efficient product management and user-friendly design.
+
+        .about-card
+          h3 Our Values
+          p Transparency, usability, security, and continuous improvement.
+
+    // Footer
+    footer
+      p © 2026 QuickShop. All rights reserved.
