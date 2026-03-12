@@ -16,7 +16,7 @@ app.set("views", "./app/views");
 
 // Create a route for root - /
 app.get("/", function(req, res) {
-    res.send("Hello world!");
+    res.render("home");
 });
 
 // Create a route for testing the db

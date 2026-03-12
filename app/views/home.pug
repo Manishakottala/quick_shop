@@ -1,0 +1,38 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Home
+    link(rel="stylesheet" href="style.css")
+  body
+    include navbar.pug
+
+    // Hero Section
+    section.hero
+      .hero-content
+        h2 Buy & Sell Products Online Easily
+        p QuickShop is a simple and secure e-commerce platform that allows retailers to sell products and customers to shop conveniently.
+        button(onclick="shopNow()") Shop Now
+
+    // Features Section
+    section.features
+      h3 Why Choose QuickShop?
+
+      .feature-container
+        .feature-card
+          h4 Easy Shopping
+          p Browse and compare products with ease.
+
+        .feature-card
+          h4 Secure Login
+          p Safe and reliable user authentication.
+
+        .feature-card
+          h4 Retailer Friendly
+          p Manage products using full CRUD operations.
+
+    // Footer
+    footer
+      p © 2026 QuickShop. All rights reserved.
+
+    script(src="script.js")
