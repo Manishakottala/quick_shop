@@ -42,6 +42,10 @@ app.post("/login", function(req, res) {
     res.redirect("/products");
 });
 
+app.get("/logout", function(req, res) {
+    res.redirect("/login");
+});
+
 // Create a route for testing the db
 app.get("/db_test", function(req, res) {
     // Assumes a table called test_table exists in your database
