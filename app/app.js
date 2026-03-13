@@ -1,11 +1,12 @@
 // Import express.js
 const express = require("express");
+const path = require("path");
 
 // Create express app
 var app = express();
 
 // Add static files location
-app.use(express.static("static"));
+app.use(express.static(path.join(__dirname, "..", "static")));
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
@@ -35,6 +36,19 @@ app.get("/db_test", function(req, res) {
     db.query(sql).then(results => {
         console.log(results);
         res.send(results)
+    });
+});
+
+// Create a route for products
+app.get("/products", function(req, res) {
+    // Query to get all products
+    sql = 'SELECT * FROM products';
+    db.query(sql).then(results => {
+        console.log(results);
+        res.render("products", { products: results });
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send('Database error');
     });
 });
 

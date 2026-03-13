@@ -1,0 +1,29 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Products
+    link(rel="stylesheet" href="/style.css")
+  body
+    include navbar.pug
+
+    // Products Section
+    section.products
+      .products-content
+        h2 Our Products
+        p Discover our wide range of products.
+
+        .products-grid
+          each product in products
+            .product-card
+              img.product-image(src=product.image_url alt=product.name)
+              h3.product-name= product.name
+              p.product-description= product.description
+              .product-price $#{product.price}
+              button.add-to-cart Add to Cart
+
+    // Footer
+    footer
+      p © 2026 QuickShop. All rights reserved.
+
+    script(src="/script.js")

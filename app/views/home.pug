@@ -3,7 +3,7 @@ html(lang="en")
   head
     meta(charset="UTF-8")
     title QuickShop | Home
-    link(rel="stylesheet" href="style.css")
+    link(rel="stylesheet" href="/style.css")
   body
     include navbar.pug
 
@@ -12,7 +12,7 @@ html(lang="en")
       .hero-content
         h2 Buy & Sell Products Online Easily
         p QuickShop is a simple and secure e-commerce platform that allows retailers to sell products and customers to shop conveniently.
-        button(onclick="shopNow()") Shop Now
+        button(onclick="window.location.href='/products'") Shop Now
 
     // Features Section
     section.features
@@ -35,4 +35,4 @@ html(lang="en")
     footer
       p © 2026 QuickShop. All rights reserved.
 
-    script(src="script.js")
+    script(src="/script.js")
