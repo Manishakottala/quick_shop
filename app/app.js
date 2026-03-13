@@ -29,6 +29,14 @@ app.get("/contact", function(req, res) {
     res.render("contact");
 });
 
+app.get("/login", function(req, res) {
+    res.render("login");
+});
+
+app.get("/register", function(req, res) {
+    res.render("register");
+});
+
 // Create a route for testing the db
 app.get("/db_test", function(req, res) {
     // Assumes a table called test_table exists in your database

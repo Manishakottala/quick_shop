@@ -1,0 +1,31 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Login
+    link(rel="stylesheet" href="/style.css")
+  body
+    include navbar.pug
+
+    section.auth-page
+      .auth-card
+        h2 Welcome Back
+        p.auth-text Log in to view your orders, save favorites, and continue shopping.
+
+        form.auth-form(action="/login" method="post")
+          .form-group
+            label(for="email") Email Address
+            input#email(type="email" name="email" placeholder="you@example.com" required)
+
+          .form-group
+            label(for="password") Password
+            input#password(type="password" name="password" placeholder="Enter your password" required)
+
+          button(type="submit") Login
+
+        p.auth-switch
+          | New to QuickShop?
+          a(href="/register") Create an account
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

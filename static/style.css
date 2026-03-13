@@ -207,6 +207,67 @@ footer {
   background-color: #1565c0;
 }
 
+/* Auth Pages */
+.auth-page {
+  padding: 80px 40px;
+}
+
+.auth-card {
+  max-width: 460px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 36px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card h2 {
+  font-size: 32px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.auth-text {
+  color: #666;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #1e88e5;
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.auth-form button:hover {
+  background-color: #1565c0;
+}
+
+.auth-switch {
+  margin-top: 22px;
+  text-align: center;
+  color: #555;
+}
+
+.auth-switch a {
+  margin-left: 6px;
+  color: #1e88e5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 /* Products Page */
 .products {
   padding: 80px 40px;
@@ -395,6 +456,7 @@ footer {
   .products,
   .about,
   .contact,
+  .auth-page,
   .hero,
   .features {
     padding-left: 20px;

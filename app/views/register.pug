@@ -1,0 +1,39 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Register
+    link(rel="stylesheet" href="/style.css")
+  body
+    include navbar.pug
+
+    section.auth-page
+      .auth-card
+        h2 Create Account
+        p.auth-text Register to track orders, save products, and shop faster on your next visit.
+
+        form.auth-form(action="/register" method="post")
+          .form-group
+            label(for="name") Full Name
+            input#name(type="text" name="name" placeholder="Your full name" required)
+
+          .form-group
+            label(for="email") Email Address
+            input#email(type="email" name="email" placeholder="you@example.com" required)
+
+          .form-group
+            label(for="password") Password
+            input#password(type="password" name="password" placeholder="Create a password" required)
+
+          .form-group
+            label(for="confirmPassword") Confirm Password
+            input#confirmPassword(type="password" name="confirmPassword" placeholder="Repeat your password" required)
+
+          button(type="submit") Register
+
+        p.auth-switch
+          | Already have an account?
+          a(href="/login") Sign in
+
+    footer
+      p © 2026 QuickShop. All rights reserved.
