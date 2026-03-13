@@ -36,11 +36,13 @@ html(lang="en")
           .products-grid
             each product in products
               .product-card
-                img.product-image(src=product.image_url alt=product.name)
-                h3.product-name= product.name
+                a.product-link(href=`/products/${product.id}`)
+                  img.product-image(src=product.image_url alt=product.name)
+                h3.product-name
+                  a.product-link(href=`/products/${product.id}`)= product.name
                 p.product-description= product.description
                 .product-price $#{product.price}
-                button.add-to-cart Add to Cart
+                a.add-to-cart(href=`/products/${product.id}`) View Details
         else
           .products-empty
             h3 No products found

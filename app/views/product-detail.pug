@@ -1,0 +1,26 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | #{product.name}
+    link(rel="stylesheet" href="/style.css")
+  body
+    include navbar.pug
+
+    section.product-detail-page
+      .product-detail-card
+        .product-detail-image-wrap
+          img.product-detail-image(src=product.image_url alt=product.name)
+
+        .product-detail-info
+          a.back-link(href="/products") ← Back to Products
+          h2= product.name
+          .product-detail-price $#{product.price}
+          p.product-detail-description= product.description
+
+          .product-detail-actions
+            a.primary-action(href="/products") Add to Cart
+            a.secondary-action(href="/products") Continue Shopping
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

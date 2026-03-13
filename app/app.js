@@ -99,6 +99,25 @@ app.get("/products", function(req, res) {
     });
 });
 
+app.get("/products/:id", function(req, res) {
+    const productId = Number(req.params.id);
+
+    if (!Number.isInteger(productId)) {
+        return res.status(400).send("Invalid product id.");
+    }
+
+    db.query("SELECT * FROM products WHERE id = ?", [productId]).then(results => {
+        if (!results.length) {
+            return res.status(404).send("Product not found.");
+        }
+
+        res.render("product-detail", { product: results[0] });
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send("Database error");
+    });
+});
+
 
 // Start server on port 3000
 app.listen(3000,function(){
