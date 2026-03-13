@@ -41,13 +41,34 @@ INSERT INTO `test_table` (`id`, `name`) VALUES
 (2, 'Kimia');
 
 --
+-- Table structure for table `products`
+--
+
+CREATE TABLE `products` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text,
+  `price` decimal(10,2) NOT NULL,
+  `image_url` varchar(500),
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `image_url`) VALUES
+(1, 'Sample Product 1', 'This is a sample product description.', 29.99, 'https://via.placeholder.com/300'),
+(2, 'Sample Product 2', 'Another sample product with different features.', 49.99, 'https://via.placeholder.com/300');
+
+--
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `test_table`
+-- Indexes for table `products`
 --
-ALTER TABLE `test_table`
+ALTER TABLE `products`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -55,11 +76,10 @@ ALTER TABLE `test_table`
 --
 
 --
--- AUTO_INCREMENT for table `test_table`
+-- AUTO_INCREMENT for table `products`
 --
-ALTER TABLE `test_table`
+ALTER TABLE `products`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
