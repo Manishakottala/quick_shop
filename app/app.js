@@ -7,6 +7,7 @@ var app = express();
 
 // Add static files location
 app.use(express.static(path.join(__dirname, "..", "static")));
+app.use(express.urlencoded({ extended: true }));
 
 // Get the functions in the db.js file to use
 const db = require('./services/db');
@@ -35,6 +36,10 @@ app.get("/login", function(req, res) {
 
 app.get("/register", function(req, res) {
     res.render("register");
+});
+
+app.post("/login", function(req, res) {
+    res.redirect("/products");
 });
 
 // Create a route for testing the db
