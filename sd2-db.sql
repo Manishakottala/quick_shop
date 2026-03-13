@@ -58,8 +58,11 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `description`, `price`, `image_url`) VALUES
-(1, 'Sample Product 1', 'This is a sample product description.', 29.99, 'https://via.placeholder.com/300'),
-(2, 'Sample Product 2', 'Another sample product with different features.', 49.99, 'https://via.placeholder.com/300');
+(1, 'Wireless Noise-Cancelling Headphones', 'Over-ear Bluetooth headphones with active noise cancellation and up to 30 hours of battery life.', 129.99, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80'),
+(2, 'Smart Fitness Watch', 'Water-resistant fitness watch with heart-rate tracking, sleep monitoring, and GPS support.', 89.50, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80'),
+(3, 'Mechanical Keyboard', 'Compact mechanical keyboard with tactile switches, white backlight, and USB-C connectivity.', 74.00, 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?auto=format&fit=crop&w=900&q=80'),
+(4, 'Portable Bluetooth Speaker', 'Portable speaker with deep bass, 12-hour playback, and IPX7 water resistance for outdoor use.', 59.99, 'https://images.unsplash.com/photo-1589003077984-894e133dabab?auto=format&fit=crop&w=900&q=80'),
+(5, 'Ergonomic Office Chair', 'High-back office chair with lumbar support, breathable mesh, and adjustable armrests.', 199.00, 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?auto=format&fit=crop&w=900&q=80');
 
 --
 -- Indexes for dumped tables
@@ -79,7 +82,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
