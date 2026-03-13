@@ -41,14 +41,48 @@ app.get("/db_test", function(req, res) {
 
 // Create a route for products
 app.get("/products", function(req, res) {
-    // Query to get all products
-    sql = 'SELECT * FROM products';
-    db.query(sql).then(results => {
-        console.log(results);
-        res.render("products", { products: results });
+    const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+    const minPriceValue = typeof req.query.minPrice === "string" ? req.query.minPrice.trim() : "";
+    const maxPriceValue = typeof req.query.maxPrice === "string" ? req.query.maxPrice.trim() : "";
+    const minPrice = minPriceValue === "" ? null : Number(minPriceValue);
+    const maxPrice = maxPriceValue === "" ? null : Number(maxPriceValue);
+
+    if ((minPriceValue !== "" && Number.isNaN(minPrice)) || (maxPriceValue !== "" && Number.isNaN(maxPrice))) {
+        return res.status(400).send("Price filters must be valid numbers.");
+    }
+
+    let sql = "SELECT * FROM products WHERE 1=1";
+    const params = [];
+
+    if (search) {
+        sql += " AND (name LIKE ? OR description LIKE ?)";
+        params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (minPrice !== null) {
+        sql += " AND price >= ?";
+        params.push(minPrice);
+    }
+
+    if (maxPrice !== null) {
+        sql += " AND price <= ?";
+        params.push(maxPrice);
+    }
+
+    sql += " ORDER BY created_at DESC, id DESC";
+
+    db.query(sql, params).then(results => {
+        res.render("products", {
+            products: results,
+            filters: {
+                search,
+                minPrice: minPriceValue,
+                maxPrice: maxPriceValue
+            }
+        });
     }).catch(err => {
         console.error(err);
-        res.status(500).send('Database error');
+        res.status(500).send("Database error");
     });
 });
 

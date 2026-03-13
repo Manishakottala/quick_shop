@@ -13,14 +13,38 @@ html(lang="en")
         h2 Our Products
         p Discover our wide range of products.
 
-        .products-grid
-          each product in products
-            .product-card
-              img.product-image(src=product.image_url alt=product.name)
-              h3.product-name= product.name
-              p.product-description= product.description
-              .product-price $#{product.price}
-              button.add-to-cart Add to Cart
+        form.products-filters(action="/products" method="get")
+          .filter-field.filter-search
+            label(for="search") Search
+            input#search(type="search" name="search" placeholder="Search by product name or description" value=filters.search)
+
+          .filter-field
+            label(for="minPrice") Min price
+            input#minPrice(type="number" name="minPrice" min="0" step="0.01" placeholder="0.00" value=filters.minPrice)
+
+          .filter-field
+            label(for="maxPrice") Max price
+            input#maxPrice(type="number" name="maxPrice" min="0" step="0.01" placeholder="100.00" value=filters.maxPrice)
+
+          .filter-actions
+            button.filter-button(type="submit") Apply Filters
+            a.clear-filters(href="/products") Clear
+
+        if products.length
+          .products-results Showing #{products.length} product#{products.length === 1 ? '' : 's'}
+
+          .products-grid
+            each product in products
+              .product-card
+                img.product-image(src=product.image_url alt=product.name)
+                h3.product-name= product.name
+                p.product-description= product.description
+                .product-price $#{product.price}
+                button.add-to-cart Add to Cart
+        else
+          .products-empty
+            h3 No products found
+            p Try a different search term or adjust the price range.
 
     // Footer
     footer
