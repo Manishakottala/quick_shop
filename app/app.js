@@ -1,6 +1,8 @@
 // Import express.js
 const express = require("express");
+const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
 const { User } = require("./models/user");
 
 
@@ -11,6 +13,35 @@ const session = require("express-session");
 
 // Create express app
 var app = express();
+
+const uploadsDir = path.join(__dirname, "..", "static", "uploads");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const productImageStorage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function(req, file, cb) {
+    const extension = path.extname(file.originalname || "").toLowerCase() || ".jpg";
+    cb(null, `product-${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`);
+  }
+});
+
+const productImageUpload = multer({
+  storage: productImageStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  },
+  fileFilter: function(req, file, cb) {
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      return cb(null, true);
+    }
+
+    return cb(new Error("Only image files are allowed."));
+  }
+});
 
 // Parse JSON payloads for API routes
 app.use(express.json());
@@ -139,6 +170,46 @@ async function getRetailerProductById(userId, productId) {
   );
 
   return results[0] || null;
+}
+
+function handleProductImageUpload(req, res, next) {
+  productImageUpload.single("image")(req, res, function(err) {
+    if (!err) {
+      return next();
+    }
+
+    const productId = Number(req.params.id);
+    const redirectTarget = Number.isInteger(productId) && productId > 0
+      ? `/retailer/products?edit=${productId}&error=Upload+a+valid+image+under+5MB.`
+      : "/retailer/products?create=1&error=Upload+a+valid+image+under+5MB.";
+
+    return res.redirect(redirectTarget);
+  });
+}
+
+function getUploadedImagePath(file) {
+  if (!file || !file.filename) {
+    return "";
+  }
+
+  return `/uploads/${file.filename}`;
+}
+
+async function deleteUploadedImage(imageUrl) {
+  if (typeof imageUrl !== "string" || !imageUrl.startsWith("/uploads/")) {
+    return;
+  }
+
+  const fileName = path.basename(imageUrl);
+  const filePath = path.join(uploadsDir, fileName);
+
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      console.error("Error deleting uploaded image:", err);
+    }
+  }
 }
 
 // Create a route for root - /
@@ -517,7 +588,7 @@ app.get("/retailer/products", requireRetailer, async function(req, res) {
     }
 });
 
-app.post("/retailer/products", requireRetailer, async function(req, res) {
+app.post("/retailer/products", requireRetailer, handleProductImageUpload, async function(req, res) {
     const {
         name,
         description = "",
@@ -525,13 +596,12 @@ app.post("/retailer/products", requireRetailer, async function(req, res) {
         stock,
         status = "active",
         category_id,
-        store_id,
-        image_url = ""
+        store_id
     } = req.body;
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedDescription = typeof description === "string" ? description.trim() : "";
-    const normalizedImageUrl = typeof image_url === "string" ? image_url.trim() : "";
+    const uploadedImagePath = getUploadedImagePath(req.file);
     const normalizedStatus = status === "inactive" ? "inactive" : "active";
     const priceValue = Number(price);
     const stockValue = Number(stock);
@@ -539,6 +609,7 @@ app.post("/retailer/products", requireRetailer, async function(req, res) {
     const storeId = Number(store_id);
 
     if (!normalizedName || Number.isNaN(priceValue) || Number.isNaN(stockValue) || !Number.isInteger(categoryId) || !Number.isInteger(storeId)) {
+        await deleteUploadedImage(uploadedImagePath);
         return res.redirect("/retailer/products?error=Please+fill+all+product+fields+correctly.");
     }
 
@@ -549,6 +620,7 @@ app.post("/retailer/products", requireRetailer, async function(req, res) {
         );
 
         if (!ownedStore.length) {
+            await deleteUploadedImage(uploadedImagePath);
             return res.redirect("/retailer/products?error=Invalid+store+selection.");
         }
 
@@ -558,6 +630,7 @@ app.post("/retailer/products", requireRetailer, async function(req, res) {
         );
 
         if (!categoryExists.length) {
+            await deleteUploadedImage(uploadedImagePath);
             return res.redirect("/retailer/products?error=Select+a+valid+category.");
         }
 
@@ -569,21 +642,22 @@ app.post("/retailer/products", requireRetailer, async function(req, res) {
             [storeId, categoryId, normalizedName, normalizedDescription, priceValue, stockValue, normalizedStatus]
         );
 
-        if (normalizedImageUrl) {
+        if (uploadedImagePath) {
             await db.query(
                 "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
-                [result.insertId, normalizedImageUrl]
+                [result.insertId, uploadedImagePath]
             );
         }
 
         return res.redirect("/retailer/products?success=Product+created+successfully.");
     } catch (err) {
         console.error("Error creating retailer product:", err);
+        await deleteUploadedImage(uploadedImagePath);
         res.redirect("/retailer/products?error=Unable+to+create+product.");
     }
 });
 
-app.post("/retailer/products/:id/update", requireRetailer, async function(req, res) {
+app.post("/retailer/products/:id/update", requireRetailer, handleProductImageUpload, async function(req, res) {
     const productId = Number(req.params.id);
     const {
         name,
@@ -592,8 +666,7 @@ app.post("/retailer/products/:id/update", requireRetailer, async function(req, r
         stock,
         status = "active",
         category_id,
-        store_id,
-        image_url = ""
+        store_id
     } = req.body;
 
     if (!Number.isInteger(productId) || productId <= 0) {
@@ -602,7 +675,7 @@ app.post("/retailer/products/:id/update", requireRetailer, async function(req, r
 
     const normalizedName = typeof name === "string" ? name.trim() : "";
     const normalizedDescription = typeof description === "string" ? description.trim() : "";
-    const normalizedImageUrl = typeof image_url === "string" ? image_url.trim() : "";
+    const uploadedImagePath = getUploadedImagePath(req.file);
     const normalizedStatus = status === "inactive" ? "inactive" : "active";
     const priceValue = Number(price);
     const stockValue = Number(stock);
@@ -610,12 +683,14 @@ app.post("/retailer/products/:id/update", requireRetailer, async function(req, r
     const storeId = Number(store_id);
 
     if (!normalizedName || Number.isNaN(priceValue) || Number.isNaN(stockValue) || !Number.isInteger(categoryId) || !Number.isInteger(storeId)) {
+        await deleteUploadedImage(uploadedImagePath);
         return res.redirect(`/retailer/products?edit=${productId}&error=Please+fill+all+product+fields+correctly.`);
     }
 
     try {
         const existingProduct = await getRetailerProductById(req.session.uid, productId);
         if (!existingProduct) {
+            await deleteUploadedImage(uploadedImagePath);
             return res.redirect("/retailer/products?error=Product+not+found.");
         }
 
@@ -625,7 +700,18 @@ app.post("/retailer/products/:id/update", requireRetailer, async function(req, r
         );
 
         if (!ownedStore.length) {
+            await deleteUploadedImage(uploadedImagePath);
             return res.redirect(`/retailer/products?edit=${productId}&error=Invalid+store+selection.`);
+        }
+
+        const categoryExists = await db.query(
+            "SELECT category_id FROM categories WHERE category_id = ? LIMIT 1",
+            [categoryId]
+        );
+
+        if (!categoryExists.length) {
+            await deleteUploadedImage(uploadedImagePath);
+            return res.redirect(`/retailer/products?edit=${productId}&error=Select+a+valid+category.`);
         }
 
         await db.query(
@@ -638,32 +724,30 @@ app.post("/retailer/products/:id/update", requireRetailer, async function(req, r
         );
 
         const existingImage = await db.query(
-            "SELECT image_id FROM product_images WHERE product_id = ? ORDER BY image_id ASC LIMIT 1",
+            "SELECT image_id, image_url FROM product_images WHERE product_id = ? ORDER BY image_id ASC LIMIT 1",
             [productId]
         );
 
-        if (normalizedImageUrl) {
+        if (uploadedImagePath) {
             if (existingImage.length) {
+                const previousImageUrl = existingImage[0].image_url;
                 await db.query(
                     "UPDATE product_images SET image_url = ? WHERE image_id = ?",
-                    [normalizedImageUrl, existingImage[0].image_id]
+                    [uploadedImagePath, existingImage[0].image_id]
                 );
+                await deleteUploadedImage(previousImageUrl);
             } else {
                 await db.query(
                     "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
-                    [productId, normalizedImageUrl]
+                    [productId, uploadedImagePath]
                 );
             }
-        } else if (existingImage.length) {
-            await db.query(
-                "DELETE FROM product_images WHERE image_id = ?",
-                [existingImage[0].image_id]
-            );
         }
 
         return res.redirect("/retailer/products?success=Product+updated+successfully.");
     } catch (err) {
         console.error("Error updating retailer product:", err);
+        await deleteUploadedImage(uploadedImagePath);
         res.redirect(`/retailer/products?edit=${productId}&error=Unable+to+update+product.`);
     }
 });
@@ -681,8 +765,17 @@ app.post("/retailer/products/:id/delete", requireRetailer, async function(req, r
             return res.redirect("/retailer/products?error=Product+not+found.");
         }
 
+        const productImages = await db.query(
+            "SELECT image_url FROM product_images WHERE product_id = ?",
+            [productId]
+        );
+
         await db.query("DELETE FROM product_images WHERE product_id = ?", [productId]);
         await db.query("DELETE FROM products WHERE product_id = ?", [productId]);
+
+        for (const image of productImages) {
+            await deleteUploadedImage(image.image_url);
+        }
 
         return res.redirect("/retailer/products?success=Product+deleted+successfully.");
     } catch (err) {

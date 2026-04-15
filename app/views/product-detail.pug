@@ -10,7 +10,10 @@ html(lang="en")
     section.product-detail-page
       .product-detail-card
         .product-detail-image-wrap
-          img.product-detail-image(src=product.image_url alt=product.name)
+          if product.image_url
+            img.product-detail-image(src=product.image_url alt=product.name)
+          else
+            .product-detail-image.product-detail-image-empty
 
         .product-detail-info
           a.back-link(href="/products") ← Back to Products

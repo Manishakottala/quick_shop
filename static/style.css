@@ -600,6 +600,14 @@ footer {
   background-color: #e9eef3;
 }
 
+.product-image-empty,
+.product-detail-image-empty,
+.form-image-preview {
+  background:
+    linear-gradient(135deg, rgba(198, 106, 43, 0.16), rgba(16, 122, 110, 0.12)),
+    #e9eef3;
+}
+
 .product-name {
   font-size: 1.35rem;
   margin-bottom: 10px;
@@ -665,6 +673,10 @@ footer {
   height: 100%;
   min-height: 500px;
   object-fit: cover;
+}
+
+.product-detail-image-empty {
+  display: block;
 }
 
 .product-detail-info {
@@ -996,6 +1008,43 @@ footer {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #59656f;
+}
+
+.form-file {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(76, 63, 50, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.form-file::file-selector-button {
+  margin-right: 14px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fffdf9;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.form-file:focus {
+  outline: none;
+  border-color: rgba(198, 106, 43, 0.45);
+  box-shadow: 0 0 0 4px rgba(198, 106, 43, 0.12);
+}
+
+.form-image-preview {
+  width: 100%;
+  max-width: 220px;
+  height: 220px;
+  border-radius: 20px;
+  object-fit: cover;
+  border: 1px solid rgba(76, 63, 50, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .retailer-products-table .actions-cell {

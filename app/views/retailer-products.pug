@@ -56,7 +56,7 @@ html(lang="en")
         if (createMode || editProduct) && categories.length && stores.length
           .retailer-panel.retailer-form-panel
             h3= editProduct ? "Edit Product" : "Create Product"
-            form.retailer-form(action=editProduct ? `/retailer/products/${editProduct.product_id}/update` : "/retailer/products" method="post")
+            form.retailer-form(action=editProduct ? `/retailer/products/${editProduct.product_id}/update` : "/retailer/products" method="post" enctype="multipart/form-data")
               .form-group
                 label(for="name") Product Name
                 input#name(type="text" name="name" required value=editProduct ? editProduct.name : "")
@@ -96,8 +96,13 @@ html(lang="en")
                       option(value="active" selected=!editProduct || editProduct.status === "active") Active
                       option(value="inactive" selected=editProduct && editProduct.status === "inactive") Inactive
                 .form-group
-                  label(for="image_url") Image URL
-                  input#image_url(type="url" name="image_url" placeholder="https://example.com/image.jpg" value=editProduct ? editProduct.image_url : "")
+                  label(for="image") Product Image
+                  input#image.form-file(type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif")
+
+              if editProduct && editProduct.image_url
+                .form-group
+                  label Current Image
+                  img.form-image-preview(src=editProduct.image_url alt=editProduct.name)
 
               .retailer-form-actions
                 button.primary-action(type="submit")= editProduct ? "Update" : "Create"
