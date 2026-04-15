@@ -393,6 +393,69 @@ footer {
   min-height: 140px;
 }
 
+.filter-select-wrap,
+.form-select-wrap {
+  position: relative;
+}
+
+.filter-select-wrap::after,
+.form-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(58, 47, 35, 0.58);
+  border-bottom: 2px solid rgba(58, 47, 35, 0.58);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-select,
+.form-select {
+  width: 100%;
+  padding: 14px 44px 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(76, 63, 50, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 242, 234, 0.95));
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 8px 18px rgba(43, 54, 64, 0.05);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.filter-select:hover,
+.form-select:hover {
+  border-color: rgba(198, 106, 43, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 12px 24px rgba(43, 54, 64, 0.08);
+}
+
+.filter-select:focus,
+.form-select:focus {
+  outline: none;
+  border-color: rgba(198, 106, 43, 0.45);
+  box-shadow:
+    0 0 0 4px rgba(198, 106, 43, 0.12),
+    0 14px 26px rgba(198, 106, 43, 0.12);
+}
+
+.filter-select-wrap:focus-within::after,
+.form-select-wrap:focus-within::after {
+  border-color: rgba(198, 106, 43, 0.72);
+  transform: translateY(-55%) rotate(45deg);
+}
+
 /* Auth Pages */
 .auth-card h2 {
   margin-bottom: 12px;
@@ -851,6 +914,57 @@ footer {
   line-height: 1.65;
 }
 
+.retailer-panel {
+  padding: 26px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm);
+}
+
+.retailer-panel h3 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.retailer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.retailer-form-actions,
+.retailer-product-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.retailer-form-actions .primary-action,
+.retailer-form-actions .secondary-action {
+  min-width: 130px;
+}
+
+.retailer-profile-panel {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .retailer-products-toolbar {
   margin-bottom: 24px;
 }
@@ -871,6 +985,22 @@ footer {
 
 .retailer-products-filters .filter-field {
   min-width: 0;
+}
+
+.retailer-form-panel {
+  margin-bottom: 24px;
+}
+
+.retailer-form-panel .form-group label {
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #59656f;
+}
+
+.retailer-products-table .actions-cell {
+  width: 110px;
+  text-align: center;
 }
 
 .table-product {
@@ -908,6 +1038,46 @@ footer {
   color: var(--text-soft);
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.row-actions form {
+  margin: 0;
+}
+
+.icon-action {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(76, 63, 50, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.edit-action:hover {
+  background: #fff8ef;
+  color: var(--accent-deep);
+}
+
+.delete-action {
+  border: none;
+  background: rgba(191, 47, 47, 0.14);
+  color: #8d1f1f;
+}
+
+.delete-action:hover {
+  background: rgba(191, 47, 47, 0.22);
 }
 
 /* Responsive */
@@ -995,6 +1165,12 @@ footer {
     grid-template-columns: 1fr;
   }
 
+  .page-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-row,
   .table-product {
     grid-template-columns: 1fr;
   }

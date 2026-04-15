@@ -10,7 +10,9 @@ html(lang="en")
     section.retailer-dashboard
       .retailer-dashboard-content
         .dashboard-hero
-          h2 Products
+          .page-title-row
+            h2 Products
+            a.primary-action(href="/retailer/products?create=1") Create
 
         if authError
           p.auth-message.auth-message-error= authError
@@ -51,6 +53,61 @@ html(lang="en")
               button.filter-button(type="submit") Search
               a.clear-filters(href="/retailer/products") Reset
 
+        if (createMode || editProduct) && categories.length && stores.length
+          .retailer-panel.retailer-form-panel
+            h3= editProduct ? "Edit Product" : "Create Product"
+            form.retailer-form(action=editProduct ? `/retailer/products/${editProduct.product_id}/update` : "/retailer/products" method="post")
+              .form-group
+                label(for="name") Product Name
+                input#name(type="text" name="name" required value=editProduct ? editProduct.name : "")
+
+              .form-group
+                label(for="description") Description
+                textarea#description(name="description" rows="4")= editProduct ? editProduct.description : ""
+
+              .form-row
+                .form-group
+                  label(for="price") Price
+                  input#price(type="number" name="price" min="0" step="0.01" required value=editProduct ? editProduct.price : "")
+                .form-group
+                  label(for="stock") Stock
+                  input#stock(type="number" name="stock" min="0" step="1" required value=editProduct ? editProduct.stock : "")
+
+              .form-row
+                .form-group
+                  label(for="category_id_form") Category
+                  .form-select-wrap
+                    select#category_id_form.form-select(name="category_id" required)
+                      option(value="") Select a category
+                      each category in categories
+                        option(value=category.category_id selected=editProduct && Number(editProduct.category_id) === Number(category.category_id))= category.name
+                .form-group
+                  label(for="store_id_form") Store
+                  .form-select-wrap
+                    select#store_id_form.form-select(name="store_id" required)
+                      each store in stores
+                        option(value=store.store_id selected=editProduct ? Number(editProduct.store_id) === Number(store.store_id) : false)= store.store_name
+
+              .form-row
+                .form-group
+                  label(for="status_form") Status
+                  .form-select-wrap
+                    select#status_form.form-select(name="status" required)
+                      option(value="active" selected=!editProduct || editProduct.status === "active") Active
+                      option(value="inactive" selected=editProduct && editProduct.status === "inactive") Inactive
+                .form-group
+                  label(for="image_url") Image URL
+                  input#image_url(type="url" name="image_url" placeholder="https://example.com/image.jpg" value=editProduct ? editProduct.image_url : "")
+
+              .retailer-form-actions
+                button.primary-action(type="submit")= editProduct ? "Update" : "Create"
+                a.secondary-action(href="/retailer/products") Cancel
+
+        if !categories.length
+          .dashboard-empty
+            h3 Categories required
+            p Add categories before creating products.
+
         if products.length
           .dashboard-table-wrap
             table.dashboard-table.retailer-products-table
@@ -62,6 +119,7 @@ html(lang="en")
                   th Price
                   th Stock
                   th Status
+                  th.actions-cell Actions
               tbody
                 each product in products
                   tr
@@ -81,6 +139,11 @@ html(lang="en")
                     td= product.stock
                     td
                       span(class=`status-pill status-${product.status}`)= product.status
+                    td.actions-cell
+                      .row-actions
+                        a.icon-action.edit-action(href=`/retailer/products?edit=${product.product_id}` title="Edit" aria-label="Edit") ✎
+                        form(action=`/retailer/products/${product.product_id}/delete` method="post")
+                          button.icon-action.delete-action(type="submit" title="Delete" aria-label="Delete") 🗑
         else
           .dashboard-empty
             h3 No products

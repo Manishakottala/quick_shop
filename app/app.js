@@ -117,6 +117,30 @@ async function getRetailerStores(userId) {
   );
 }
 
+async function getRetailerProductById(userId, productId) {
+  const results = await db.query(
+    `
+      SELECT
+        p.*,
+        p.product_id AS id,
+        (
+          SELECT pi.image_url
+          FROM product_images pi
+          WHERE pi.product_id = p.product_id
+          ORDER BY pi.image_id ASC
+          LIMIT 1
+        ) AS image_url
+      FROM products p
+      INNER JOIN stores s ON s.store_id = p.store_id
+      WHERE s.retailer_id = ? AND p.product_id = ?
+      LIMIT 1
+    `,
+    [userId, productId]
+  );
+
+  return results[0] || null;
+}
+
 // Create a route for root - /
 app.get("/", function(req, res) {
     res.render("home");
@@ -404,6 +428,8 @@ app.get("/retailer/products", requireRetailer, async function(req, res) {
     try {
         await ensureRetailerStore(req.session.uid, req.session.userName);
 
+        const editProductId = Number(req.query.edit);
+        const createMode = req.query.create === "1";
         const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
         const statusFilter = typeof req.query.status === "string" ? req.query.status.trim() : "";
         const storeFilterValue = typeof req.query.store_id === "string" ? req.query.store_id.trim() : "";
@@ -466,11 +492,18 @@ app.get("/retailer/products", requireRetailer, async function(req, res) {
         sql += " ORDER BY p.created_at DESC, p.product_id DESC";
 
         const products = await db.query(sql, params);
+        let editProduct = null;
+
+        if (Number.isInteger(editProductId) && editProductId > 0) {
+            editProduct = await getRetailerProductById(req.session.uid, editProductId);
+        }
 
         res.render("retailer-products", {
             stores,
             categories,
             products,
+            editProduct,
+            createMode,
             filters: {
                 search,
                 status: statusFilter,
@@ -481,6 +514,180 @@ app.get("/retailer/products", requireRetailer, async function(req, res) {
     } catch (err) {
         console.error("Error in /retailer/products:", err);
         res.status(500).send("Database error");
+    }
+});
+
+app.post("/retailer/products", requireRetailer, async function(req, res) {
+    const {
+        name,
+        description = "",
+        price,
+        stock,
+        status = "active",
+        category_id,
+        store_id,
+        image_url = ""
+    } = req.body;
+
+    const normalizedName = typeof name === "string" ? name.trim() : "";
+    const normalizedDescription = typeof description === "string" ? description.trim() : "";
+    const normalizedImageUrl = typeof image_url === "string" ? image_url.trim() : "";
+    const normalizedStatus = status === "inactive" ? "inactive" : "active";
+    const priceValue = Number(price);
+    const stockValue = Number(stock);
+    const categoryId = Number(category_id);
+    const storeId = Number(store_id);
+
+    if (!normalizedName || Number.isNaN(priceValue) || Number.isNaN(stockValue) || !Number.isInteger(categoryId) || !Number.isInteger(storeId)) {
+        return res.redirect("/retailer/products?error=Please+fill+all+product+fields+correctly.");
+    }
+
+    try {
+        const ownedStore = await db.query(
+            "SELECT store_id FROM stores WHERE store_id = ? AND retailer_id = ? LIMIT 1",
+            [storeId, req.session.uid]
+        );
+
+        if (!ownedStore.length) {
+            return res.redirect("/retailer/products?error=Invalid+store+selection.");
+        }
+
+        const categoryExists = await db.query(
+            "SELECT category_id FROM categories WHERE category_id = ? LIMIT 1",
+            [categoryId]
+        );
+
+        if (!categoryExists.length) {
+            return res.redirect("/retailer/products?error=Select+a+valid+category.");
+        }
+
+        const result = await db.query(
+            `
+                INSERT INTO products (store_id, category_id, name, description, price, stock, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
+            [storeId, categoryId, normalizedName, normalizedDescription, priceValue, stockValue, normalizedStatus]
+        );
+
+        if (normalizedImageUrl) {
+            await db.query(
+                "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
+                [result.insertId, normalizedImageUrl]
+            );
+        }
+
+        return res.redirect("/retailer/products?success=Product+created+successfully.");
+    } catch (err) {
+        console.error("Error creating retailer product:", err);
+        res.redirect("/retailer/products?error=Unable+to+create+product.");
+    }
+});
+
+app.post("/retailer/products/:id/update", requireRetailer, async function(req, res) {
+    const productId = Number(req.params.id);
+    const {
+        name,
+        description = "",
+        price,
+        stock,
+        status = "active",
+        category_id,
+        store_id,
+        image_url = ""
+    } = req.body;
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+        return res.redirect("/retailer/products?error=Invalid+product+selected.");
+    }
+
+    const normalizedName = typeof name === "string" ? name.trim() : "";
+    const normalizedDescription = typeof description === "string" ? description.trim() : "";
+    const normalizedImageUrl = typeof image_url === "string" ? image_url.trim() : "";
+    const normalizedStatus = status === "inactive" ? "inactive" : "active";
+    const priceValue = Number(price);
+    const stockValue = Number(stock);
+    const categoryId = Number(category_id);
+    const storeId = Number(store_id);
+
+    if (!normalizedName || Number.isNaN(priceValue) || Number.isNaN(stockValue) || !Number.isInteger(categoryId) || !Number.isInteger(storeId)) {
+        return res.redirect(`/retailer/products?edit=${productId}&error=Please+fill+all+product+fields+correctly.`);
+    }
+
+    try {
+        const existingProduct = await getRetailerProductById(req.session.uid, productId);
+        if (!existingProduct) {
+            return res.redirect("/retailer/products?error=Product+not+found.");
+        }
+
+        const ownedStore = await db.query(
+            "SELECT store_id FROM stores WHERE store_id = ? AND retailer_id = ? LIMIT 1",
+            [storeId, req.session.uid]
+        );
+
+        if (!ownedStore.length) {
+            return res.redirect(`/retailer/products?edit=${productId}&error=Invalid+store+selection.`);
+        }
+
+        await db.query(
+            `
+                UPDATE products
+                SET store_id = ?, category_id = ?, name = ?, description = ?, price = ?, stock = ?, status = ?
+                WHERE product_id = ?
+            `,
+            [storeId, categoryId, normalizedName, normalizedDescription, priceValue, stockValue, normalizedStatus, productId]
+        );
+
+        const existingImage = await db.query(
+            "SELECT image_id FROM product_images WHERE product_id = ? ORDER BY image_id ASC LIMIT 1",
+            [productId]
+        );
+
+        if (normalizedImageUrl) {
+            if (existingImage.length) {
+                await db.query(
+                    "UPDATE product_images SET image_url = ? WHERE image_id = ?",
+                    [normalizedImageUrl, existingImage[0].image_id]
+                );
+            } else {
+                await db.query(
+                    "INSERT INTO product_images (product_id, image_url) VALUES (?, ?)",
+                    [productId, normalizedImageUrl]
+                );
+            }
+        } else if (existingImage.length) {
+            await db.query(
+                "DELETE FROM product_images WHERE image_id = ?",
+                [existingImage[0].image_id]
+            );
+        }
+
+        return res.redirect("/retailer/products?success=Product+updated+successfully.");
+    } catch (err) {
+        console.error("Error updating retailer product:", err);
+        res.redirect(`/retailer/products?edit=${productId}&error=Unable+to+update+product.`);
+    }
+});
+
+app.post("/retailer/products/:id/delete", requireRetailer, async function(req, res) {
+    const productId = Number(req.params.id);
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+        return res.redirect("/retailer/products?error=Invalid+product+selected.");
+    }
+
+    try {
+        const existingProduct = await getRetailerProductById(req.session.uid, productId);
+        if (!existingProduct) {
+            return res.redirect("/retailer/products?error=Product+not+found.");
+        }
+
+        await db.query("DELETE FROM product_images WHERE product_id = ?", [productId]);
+        await db.query("DELETE FROM products WHERE product_id = ?", [productId]);
+
+        return res.redirect("/retailer/products?success=Product+deleted+successfully.");
+    } catch (err) {
+        console.error("Error deleting retailer product:", err);
+        res.redirect("/retailer/products?error=Unable+to+delete+product.+Remove+related+orders+first.");
     }
 });
 
