@@ -1,0 +1,90 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Retailer Products
+    link(rel="stylesheet" href="/style.css")
+  body
+    include products-navbar.pug
+
+    section.retailer-dashboard
+      .retailer-dashboard-content
+        .dashboard-hero
+          h2 Products
+
+        if authError
+          p.auth-message.auth-message-error= authError
+        if authSuccess
+          p.auth-message.auth-message-success= authSuccess
+
+        .retailer-products-toolbar
+          form.retailer-products-filters(action="/retailer/products" method="get")
+            .filter-field.filter-search
+              label(for="search") Search
+              input#search(type="search" name="search" placeholder="Search products" value=filters.search)
+
+            .filter-field
+              label(for="status") Status
+              .filter-select-wrap
+                select#status.filter-select(name="status")
+                  option(value="") All
+                  option(value="active" selected=filters.status === "active") Active
+                  option(value="inactive" selected=filters.status === "inactive") Inactive
+
+            .filter-field
+              label(for="store_id") Store
+              .filter-select-wrap
+                select#store_id.filter-select(name="store_id")
+                  option(value="") All
+                  each store in stores
+                    option(value=store.store_id selected=String(filters.store_id) === String(store.store_id))= store.store_name
+
+            .filter-field
+              label(for="category_id") Category
+              .filter-select-wrap
+                select#category_id.filter-select(name="category_id")
+                  option(value="") All
+                  each category in categories
+                    option(value=category.category_id selected=String(filters.category_id) === String(category.category_id))= category.name
+
+            .filter-actions
+              button.filter-button(type="submit") Search
+              a.clear-filters(href="/retailer/products") Reset
+
+        if products.length
+          .dashboard-table-wrap
+            table.dashboard-table.retailer-products-table
+              thead
+                tr
+                  th Product
+                  th Store
+                  th Category
+                  th Price
+                  th Stock
+                  th Status
+              tbody
+                each product in products
+                  tr
+                    td
+                      .table-product
+                        if product.image_url
+                          img.table-product-image(src=product.image_url alt=product.name)
+                        else
+                          .table-product-image.table-product-image-empty
+                        .table-product-copy
+                          strong= product.name
+                          if product.description
+                            span= product.description
+                    td= product.store_name
+                    td= product.category_name || "-"
+                    td £#{Number(product.price || 0).toFixed(2)}
+                    td= product.stock
+                    td
+                      span(class=`status-pill status-${product.status}`)= product.status
+        else
+          .dashboard-empty
+            h3 No products
+            p No products match the current filter.
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

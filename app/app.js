@@ -400,6 +400,90 @@ app.get("/retailer/dashboard", requireRetailer, async function(req, res) {
     }
 });
 
+app.get("/retailer/products", requireRetailer, async function(req, res) {
+    try {
+        await ensureRetailerStore(req.session.uid, req.session.userName);
+
+        const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+        const statusFilter = typeof req.query.status === "string" ? req.query.status.trim() : "";
+        const storeFilterValue = typeof req.query.store_id === "string" ? req.query.store_id.trim() : "";
+        const categoryFilterValue = typeof req.query.category_id === "string" ? req.query.category_id.trim() : "";
+        const storeFilter = storeFilterValue === "" ? null : Number(storeFilterValue);
+        const categoryFilter = categoryFilterValue === "" ? null : Number(categoryFilterValue);
+
+        const stores = await getRetailerStores(req.session.uid);
+        const categories = await db.query(
+            "SELECT category_id, name FROM categories ORDER BY name ASC"
+        );
+
+        let sql = `
+            SELECT
+                p.product_id,
+                p.name,
+                p.description,
+                p.price,
+                p.stock,
+                p.status,
+                p.category_id,
+                p.store_id,
+                p.created_at,
+                c.name AS category_name,
+                s.store_name,
+                (
+                    SELECT pi.image_url
+                    FROM product_images pi
+                    WHERE pi.product_id = p.product_id
+                    ORDER BY pi.image_id ASC
+                    LIMIT 1
+                ) AS image_url
+            FROM products p
+            INNER JOIN stores s ON s.store_id = p.store_id
+            LEFT JOIN categories c ON c.category_id = p.category_id
+            WHERE s.retailer_id = ?
+        `;
+        const params = [req.session.uid];
+
+        if (search) {
+            sql += " AND (p.name LIKE ? OR p.description LIKE ?)";
+            params.push(`%${search}%`, `%${search}%`);
+        }
+
+        if (statusFilter === "active" || statusFilter === "inactive") {
+            sql += " AND p.status = ?";
+            params.push(statusFilter);
+        }
+
+        if (Number.isInteger(storeFilter)) {
+            sql += " AND p.store_id = ?";
+            params.push(storeFilter);
+        }
+
+        if (Number.isInteger(categoryFilter)) {
+            sql += " AND p.category_id = ?";
+            params.push(categoryFilter);
+        }
+
+        sql += " ORDER BY p.created_at DESC, p.product_id DESC";
+
+        const products = await db.query(sql, params);
+
+        res.render("retailer-products", {
+            stores,
+            categories,
+            products,
+            filters: {
+                search,
+                status: statusFilter,
+                store_id: storeFilterValue,
+                category_id: categoryFilterValue
+            }
+        });
+    } catch (err) {
+        console.error("Error in /retailer/products:", err);
+        res.status(500).send("Database error");
+    }
+});
+
 
 // Start server on port 3000
 app.listen(3000,function(){
