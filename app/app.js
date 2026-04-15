@@ -1,9 +1,35 @@
 // Import express.js
 const express = require("express");
 const path = require("path");
+const { User } = require("./models/user");
+
+
+
+const bcrypt = require("bcryptjs");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 
 // Create express app
 var app = express();
+
+// Parse JSON payloads for API routes
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// Session and cookies
+app.use(cookieParser());
+const oneDay = 1000 * 60 * 60 * 24;
+app.use(
+  session({
+    secret: "secretkeysdfjsflyoifasd",
+    saveUninitialized: true,
+    resave: false,
+    cookie: { maxAge: oneDay },
+  })
+);
+
 
 // Add static files location
 app.use(express.static(path.join(__dirname, "..", "static")));
@@ -15,6 +41,13 @@ const db = require('./services/db');
 // pug configuration
 app.set("view engine", "pug");
 app.set("views", "./app/views");
+
+
+app.use((req, res, next) => {
+  res.locals.uid = req.session.uid;
+  res.locals.loggedIn = req.session.loggedIn;
+  next();
+});
 
 // Create a route for root - /
 app.get("/", function(req, res) {
@@ -42,9 +75,76 @@ app.post("/login", function(req, res) {
     res.redirect("/products");
 });
 
-app.get("/logout", function(req, res) {
-    res.redirect("/login");
+
+
+// Handle signup / set-password
+app.post("/set-password", async (req, res) => {
+  const { email, username, password } = req.body;
+  if (!email || !username || !password) {
+    return res.status(400).send("All fields are required.");
+  }
+
+  try {
+    // Check existing by email or username
+    const existing = await db.query(
+      "SELECT * FROM Users WHERE email = ? OR username = ?",
+      [email, username]
+    );
+    const user = new User(email, username);
+
+    if (existing.length > 0) {
+      // update password for existing
+      user.id = existing[0].user_id;
+      await user.setUserPassword(password);
+      return res.send("Password updated successfully.");
+    }
+
+    // create new
+    await user.addUser(password);
+    res.send("Account created! Please log in.");
+  } catch (err) {
+    console.error("Error in /set-password:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
+
+// Handle login
+app.post("/authenticate", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).send("Email and password are required.");
+
+  const user = new User(email);
+
+  try {
+    const uId = await user.getIdFromEmail();
+    if (!uId) return res.status(401).send("Invalid email");
+
+    user.id = uId;
+    const match = await user.authenticate(password);
+    if (!match) return res.status(401).send("Invalid password");
+
+    // session
+    req.session.uid = uId;
+    req.session.loggedIn = true;
+
+    return res.redirect("/dashboard");
+
+  } catch (err) {
+    console.error("Error in /authenticate:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+// Handle logout
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) console.error(err);
+    res.redirect("/login");
+  });
+});
+
 
 // Create a route for testing the db
 app.get("/db_test", function(req, res) {
