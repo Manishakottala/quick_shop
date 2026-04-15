@@ -401,6 +401,26 @@ footer {
   margin-bottom: 26px;
 }
 
+.auth-message {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.auth-message-error {
+  color: #8a1c1c;
+  background: rgba(202, 63, 63, 0.12);
+  border: 1px solid rgba(202, 63, 63, 0.2);
+}
+
+.auth-message-success {
+  color: #155a3b;
+  background: rgba(36, 158, 101, 0.12);
+  border: 1px solid rgba(36, 158, 101, 0.2);
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;

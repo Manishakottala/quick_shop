@@ -5,7 +5,6 @@ const { User } = require("./models/user");
 
 
 
-const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -46,8 +45,18 @@ app.set("views", "./app/views");
 app.use((req, res, next) => {
   res.locals.uid = req.session.uid;
   res.locals.loggedIn = req.session.loggedIn;
+  res.locals.authError = typeof req.query.error === "string" ? req.query.error : "";
+  res.locals.authSuccess = typeof req.query.success === "string" ? req.query.success : "";
   next();
 });
+
+function requireLogin(req, res, next) {
+  if (req.session.loggedIn) {
+    return next();
+  }
+
+  return res.redirect("/login?error=Please+log+in+to+continue.");
+}
 
 // Create a route for root - /
 app.get("/", function(req, res) {
@@ -64,75 +73,93 @@ app.get("/contact", function(req, res) {
 });
 
 app.get("/login", function(req, res) {
+    if (req.session.loggedIn) {
+        return res.redirect("/products");
+    }
     res.render("login");
 });
 
 app.get("/register", function(req, res) {
+    if (req.session.loggedIn) {
+        return res.redirect("/products");
+    }
     res.render("register");
 });
 
-app.post("/login", function(req, res) {
-    res.redirect("/products");
-});
+// Handle signup
+app.post("/register", async (req, res) => {
+  const {
+    email,
+    name,
+    username,
+    phone = null,
+    role = "customer",
+    password,
+    confirmPassword
+  } = req.body;
+  const displayName = typeof name === "string" && name.trim() !== ""
+    ? name.trim()
+    : typeof username === "string" && username.trim() !== ""
+      ? username.trim()
+      : "";
 
+  if (!email || !displayName || !password || !confirmPassword) {
+    return res.redirect("/register?error=All+fields+are+required.");
+  }
 
-
-// Handle signup / set-password
-app.post("/set-password", async (req, res) => {
-  const { email, username, password } = req.body;
-  if (!email || !username || !password) {
-    return res.status(400).send("All fields are required.");
+  if (password !== confirmPassword) {
+    return res.redirect("/register?error=Passwords+do+not+match.");
   }
 
   try {
-    // Check existing by email or username
     const existing = await db.query(
-      "SELECT * FROM Users WHERE email = ? OR username = ?",
-      [email, username]
+      "SELECT user_id FROM users WHERE email = ?",
+      [email]
     );
-    const user = new User(email, username);
 
     if (existing.length > 0) {
-      // update password for existing
-      user.id = existing[0].user_id;
-      await user.setUserPassword(password);
-      return res.send("Password updated successfully.");
+      return res.redirect("/register?error=Email+already+exists.");
     }
 
-    // create new
+    const user = new User(email, displayName, phone, role);
     await user.addUser(password);
-    res.send("Account created! Please log in.");
+
+    return res.redirect("/login?success=Account+created.+Please+log+in.");
   } catch (err) {
-    console.error("Error in /set-password:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Error in /register:", err);
+    res.redirect("/register?error=Unable+to+create+account.");
   }
 });
 
 // Handle login
-app.post("/authenticate", async (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).send("Email and password are required.");
+  if (!email || !password) {
+    return res.redirect("/login?error=Email+and+password+are+required.");
+  }
 
   const user = new User(email);
 
   try {
     const uId = await user.getIdFromEmail();
-    if (!uId) return res.status(401).send("Invalid email");
+    if (!uId) {
+      return res.redirect("/login?error=Invalid+email+or+password.");
+    }
 
     user.id = uId;
     const match = await user.authenticate(password);
-    if (!match) return res.status(401).send("Invalid password");
+    if (!match) {
+      return res.redirect("/login?error=Invalid+email+or+password.");
+    }
 
-    // session
     req.session.uid = uId;
     req.session.loggedIn = true;
 
-    return res.redirect("/dashboard");
+    return res.redirect("/products");
 
   } catch (err) {
-    console.error("Error in /authenticate:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Error in /login:", err);
+    res.redirect("/login?error=Unable+to+log+in.");
   }
 });
 
@@ -157,7 +184,7 @@ app.get("/db_test", function(req, res) {
 });
 
 // Create a route for products
-app.get("/products", function(req, res) {
+app.get("/products", requireLogin, function(req, res) {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
     const minPriceValue = typeof req.query.minPrice === "string" ? req.query.minPrice.trim() : "";
     const maxPriceValue = typeof req.query.maxPrice === "string" ? req.query.maxPrice.trim() : "";
@@ -203,7 +230,7 @@ app.get("/products", function(req, res) {
     });
 });
 
-app.get("/products/:id", function(req, res) {
+app.get("/products/:id", requireLogin, function(req, res) {
     const productId = Number(req.params.id);
 
     if (!Number.isInteger(productId)) {

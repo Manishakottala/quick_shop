@@ -10,7 +10,13 @@ html(lang="en")
     section.auth-page
       .auth-card
         h2 Welcome Back
-        p.auth-text Enter any email and password to continue to the products page.
+        p.auth-text Sign in with your QuickShop account to continue browsing products.
+
+        if authError
+          p.auth-message.auth-message-error= authError
+
+        if authSuccess
+          p.auth-message.auth-message-success= authSuccess
 
         form.auth-form(action="/login" method="post")
           .form-group
