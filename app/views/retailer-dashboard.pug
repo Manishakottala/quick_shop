@@ -1,0 +1,86 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Retailer Dashboard
+    link(rel="stylesheet" href="/style.css")
+  body
+    include products-navbar.pug
+
+    section.retailer-dashboard
+      .retailer-dashboard-content
+        .dashboard-hero
+          h2 Dashboard
+
+        .dashboard-stats
+          .dashboard-stat-card
+            span.dashboard-stat-label Total Products
+            strong= dashboard.product_count
+          .dashboard-stat-card
+            span.dashboard-stat-label Stock Units
+            strong= dashboard.stock_units
+          .dashboard-stat-card
+            span.dashboard-stat-label Orders Received
+            strong= dashboard.order_count
+          .dashboard-stat-card
+            span.dashboard-stat-label Gross Revenue
+            strong £#{Number(dashboard.gross_revenue || 0).toFixed(2)}
+
+        if stores.length
+          .dashboard-section
+            .dashboard-section-heading
+              h3 Your Stores
+
+            .store-grid
+              each store in stores
+                article.store-card
+                  .store-card-header
+                    h4= store.store_name
+                    span.store-badge #{store.active_products} active
+                  if store.description
+                    p.store-description= store.description
+                  else
+                    p.store-description No store description added yet.
+                  .store-metrics
+                    .store-metric
+                      span.label Products
+                      strong= store.total_products
+                    .store-metric
+                      span.label Stock
+                      strong= store.total_stock
+
+          .dashboard-section
+            .dashboard-section-heading
+              h3 Recent Products
+
+            if recentProducts.length
+              .dashboard-table-wrap
+                table.dashboard-table
+                  thead
+                    tr
+                      th Product
+                      th Store
+                      th Price
+                      th Stock
+                      th Status
+                  tbody
+                    each product in recentProducts
+                      tr
+                        td
+                          a.dashboard-product-link(href=`/products/${product.product_id}`)= product.name
+                        td= product.store_name
+                        td £#{Number(product.price || 0).toFixed(2)}
+                        td= product.stock
+                        td
+                          span(class=`status-pill status-${product.status}`)= product.status
+            else
+              .dashboard-empty
+                h3 No products yet
+                p Create products for your store to see them here.
+        else
+          .dashboard-empty
+            h3 Store setup in progress
+            p Refresh the page if your new store summary does not appear immediately.
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

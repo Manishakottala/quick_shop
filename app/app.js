@@ -45,10 +45,16 @@ app.set("views", "./app/views");
 app.use((req, res, next) => {
   res.locals.uid = req.session.uid;
   res.locals.loggedIn = req.session.loggedIn;
+  res.locals.userRole = req.session.userRole || "";
+  res.locals.userName = req.session.userName || "";
   res.locals.authError = typeof req.query.error === "string" ? req.query.error : "";
   res.locals.authSuccess = typeof req.query.success === "string" ? req.query.success : "";
   next();
 });
+
+function getPostLoginRedirect(req) {
+  return req.session.userRole === "retailer" ? "/retailer/dashboard" : "/products";
+}
 
 function requireLogin(req, res, next) {
   if (req.session.loggedIn) {
@@ -56,6 +62,59 @@ function requireLogin(req, res, next) {
   }
 
   return res.redirect("/login?error=Please+log+in+to+continue.");
+}
+
+function requireRetailer(req, res, next) {
+  if (!req.session.loggedIn) {
+    return res.redirect("/login?error=Please+log+in+to+continue.");
+  }
+
+  if (req.session.userRole !== "retailer") {
+    return res.redirect("/products?error=Retailer+access+required.");
+  }
+
+  return next();
+}
+
+async function ensureRetailerStore(userId, userName) {
+  const stores = await db.query(
+    "SELECT store_id FROM stores WHERE retailer_id = ? LIMIT 1",
+    [userId]
+  );
+
+  if (stores.length > 0) {
+    return stores[0].store_id;
+  }
+
+  const safeName = typeof userName === "string" && userName.trim() !== ""
+    ? userName.trim()
+    : "Retailer";
+
+  const insertResult = await db.query(
+    `
+      INSERT INTO stores (retailer_id, store_name, description)
+      VALUES (?, ?, ?)
+    `,
+    [
+      userId,
+      `${safeName}'s Store`,
+      "Default store created automatically for this retailer account."
+    ]
+  );
+
+  return insertResult.insertId;
+}
+
+async function getRetailerStores(userId) {
+  return db.query(
+    `
+      SELECT store_id, store_name, description, created_at
+      FROM stores
+      WHERE retailer_id = ?
+      ORDER BY created_at DESC, store_id DESC
+    `,
+    [userId]
+  );
 }
 
 // Create a route for root - /
@@ -74,14 +133,14 @@ app.get("/contact", function(req, res) {
 
 app.get("/login", function(req, res) {
     if (req.session.loggedIn) {
-        return res.redirect("/products");
+        return res.redirect(getPostLoginRedirect(req));
     }
     res.render("login");
 });
 
 app.get("/register", function(req, res) {
     if (req.session.loggedIn) {
-        return res.redirect("/products");
+        return res.redirect(getPostLoginRedirect(req));
     }
     res.render("register");
 });
@@ -97,11 +156,15 @@ app.post("/register", async (req, res) => {
     password,
     confirmPassword
   } = req.body;
+  const normalizedRole = role === "retailer" ? "retailer" : "customer";
   const displayName = typeof name === "string" && name.trim() !== ""
     ? name.trim()
     : typeof username === "string" && username.trim() !== ""
       ? username.trim()
       : "";
+  const normalizedPhone = typeof phone === "string" && phone.trim() !== ""
+    ? phone.trim()
+    : null;
 
   if (!email || !displayName || !password || !confirmPassword) {
     return res.redirect("/register?error=All+fields+are+required.");
@@ -121,8 +184,12 @@ app.post("/register", async (req, res) => {
       return res.redirect("/register?error=Email+already+exists.");
     }
 
-    const user = new User(email, displayName, phone, role);
+    const user = new User(email, displayName, normalizedPhone, normalizedRole);
     await user.addUser(password);
+
+    if (normalizedRole === "retailer") {
+      await ensureRetailerStore(user.id, displayName);
+    }
 
     return res.redirect("/login?success=Account+created.+Please+log+in.");
   } catch (err) {
@@ -152,10 +219,21 @@ app.post("/login", async (req, res) => {
       return res.redirect("/login?error=Invalid+email+or+password.");
     }
 
+    const userRecord = await db.query(
+      "SELECT name, role FROM users WHERE user_id = ?",
+      [uId]
+    );
+
     req.session.uid = uId;
     req.session.loggedIn = true;
+    req.session.userName = userRecord[0]?.name || "";
+    req.session.userRole = userRecord[0]?.role || "customer";
 
-    return res.redirect("/products");
+    if (req.session.userRole === "retailer") {
+      await ensureRetailerStore(uId, req.session.userName);
+    }
+
+    return res.redirect(getPostLoginRedirect(req));
 
   } catch (err) {
     console.error("Error in /login:", err);
@@ -247,6 +325,79 @@ app.get("/products/:id", requireLogin, function(req, res) {
         console.error(err);
         res.status(500).send("Database error");
     });
+});
+
+app.get("/retailer/dashboard", requireRetailer, async function(req, res) {
+    try {
+        await ensureRetailerStore(req.session.uid, req.session.userName);
+
+        const stores = await db.query(
+            `
+                SELECT
+                    s.store_id,
+                    s.store_name,
+                    s.description,
+                    s.created_at,
+                    COUNT(DISTINCT p.product_id) AS total_products,
+                    COALESCE(SUM(p.stock), 0) AS total_stock,
+                    COALESCE(SUM(CASE WHEN p.status = 'active' THEN 1 ELSE 0 END), 0) AS active_products
+                FROM stores s
+                LEFT JOIN products p ON p.store_id = s.store_id
+                WHERE s.retailer_id = ?
+                GROUP BY s.store_id, s.store_name, s.description, s.created_at
+                ORDER BY s.created_at DESC, s.store_id DESC
+            `,
+            [req.session.uid]
+        );
+
+        const statsResult = await db.query(
+            `
+                SELECT
+                    COUNT(DISTINCT p.product_id) AS product_count,
+                    COALESCE(SUM(p.stock), 0) AS stock_units,
+                    COUNT(DISTINCT oi.order_id) AS order_count,
+                    COALESCE(SUM(oi.quantity * oi.price), 0) AS gross_revenue
+                FROM stores s
+                LEFT JOIN products p ON p.store_id = s.store_id
+                LEFT JOIN order_items oi ON oi.product_id = p.product_id
+                WHERE s.retailer_id = ?
+            `,
+            [req.session.uid]
+        );
+
+        const recentProducts = await db.query(
+            `
+                SELECT
+                    p.product_id,
+                    p.name,
+                    p.price,
+                    p.stock,
+                    p.status,
+                    p.created_at,
+                    s.store_name
+                FROM stores s
+                INNER JOIN products p ON p.store_id = s.store_id
+                WHERE s.retailer_id = ?
+                ORDER BY p.created_at DESC, p.product_id DESC
+                LIMIT 6
+            `,
+            [req.session.uid]
+        );
+
+        res.render("retailer-dashboard", {
+            dashboard: statsResult[0] || {
+                product_count: 0,
+                stock_units: 0,
+                order_count: 0,
+                gross_revenue: 0
+            },
+            stores,
+            recentProducts
+        });
+    } catch (err) {
+        console.error("Error in /retailer/dashboard:", err);
+        res.status(500).send("Database error");
+    }
 });
 
 

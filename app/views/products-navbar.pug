@@ -1,5 +1,8 @@
 nav.navbar.product-navbar
   h1.logo QuickShop
   ul.nav-links
-    li: a(href="/products") Products
+    if userRole === "retailer"
+      li: a(href="/retailer/dashboard") Dashboard
+    else
+      li: a(href="/products") Products
     li: a.logout-link(href="/logout") Logout
