@@ -25,6 +25,22 @@ html(lang="en")
             input#email(type="email" name="email" placeholder="you@example.com" required)
 
           .form-group
+            label(for="phone") Phone Number
+            input#phone(type="tel" name="phone" placeholder="Enter your phone number")
+
+          .form-group
+            span.form-label Role
+            .role-options
+              label.role-option
+                input(type="radio" name="role" value="customer" checked required)
+                span.role-option-title Customer
+                span.role-option-text Shop products and place orders
+              label.role-option
+                input(type="radio" name="role" value="retailer" required)
+                span.role-option-title Retailer
+                span.role-option-text Manage listings and sell products
+
+          .form-group
             label(for="password") Password
             input#password(type="password" name="password" placeholder="Create a password" required)
 

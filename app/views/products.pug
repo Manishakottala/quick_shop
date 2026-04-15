@@ -41,7 +41,7 @@ html(lang="en")
                 h3.product-name
                   a.product-link(href=`/products/${product.id}`)= product.name
                 p.product-description= product.description
-                .product-price $#{product.price}
+                .product-price £#{product.price}
                 a.add-to-cart(href=`/products/${product.id}`) View Details
         else
           .products-empty
