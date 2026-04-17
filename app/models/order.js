@@ -163,6 +163,126 @@ class Order {
       [this.userId, orderId]
     );
   }
+
+  async ensureRetailerStatuses() {
+    const existingStatuses = await db.query(
+      "SELECT order_status_id, name FROM order_status ORDER BY order_status_id ASC"
+    );
+
+    if (existingStatuses.length > 0) {
+      return existingStatuses;
+    }
+
+    const defaultStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+
+    for (const statusName of defaultStatuses) {
+      await db.query(
+        "INSERT INTO order_status (name) VALUES (?)",
+        [statusName]
+      );
+    }
+
+    return db.query(
+      "SELECT order_status_id, name FROM order_status ORDER BY order_status_id ASC"
+    );
+  }
+
+  async getRetailerOrders(retailerId) {
+    return db.query(
+      `
+        SELECT
+          o.order_id,
+          o.created_at,
+          o.total_amount,
+          o.order_status_id,
+          os.name AS status_name,
+          u.name AS customer_name,
+          u.email AS customer_email,
+          a.street,
+          a.city,
+          a.state,
+          a.postal_code,
+          a.country,
+          COUNT(DISTINCT oi.order_item_id) AS item_count,
+          COALESCE(SUM(oi.quantity), 0) AS total_units,
+          COALESCE(SUM(oi.quantity * oi.price), 0) AS retailer_total
+        FROM orders o
+        INNER JOIN users u ON u.user_id = o.user_id
+        LEFT JOIN addresses a ON a.address_id = o.address_id
+        LEFT JOIN order_status os ON os.order_status_id = o.order_status_id
+        INNER JOIN order_items oi ON oi.order_id = o.order_id
+        INNER JOIN products p ON p.product_id = oi.product_id
+        INNER JOIN stores s ON s.store_id = p.store_id
+        WHERE s.retailer_id = ?
+        GROUP BY
+          o.order_id,
+          o.created_at,
+          o.total_amount,
+          o.order_status_id,
+          os.name,
+          u.name,
+          u.email,
+          a.street,
+          a.city,
+          a.state,
+          a.postal_code,
+          a.country
+        ORDER BY o.created_at DESC, o.order_id DESC
+      `,
+      [retailerId]
+    );
+  }
+
+  async getRetailerOrderItems(retailerId, orderId) {
+    return db.query(
+      `
+        SELECT
+          oi.order_item_id,
+          oi.quantity,
+          oi.price,
+          p.product_id,
+          p.name,
+          s.store_name,
+          (
+            SELECT pi.image_url
+            FROM product_images pi
+            WHERE pi.product_id = p.product_id
+            ORDER BY pi.image_id ASC
+            LIMIT 1
+          ) AS image_url
+        FROM order_items oi
+        INNER JOIN products p ON p.product_id = oi.product_id
+        INNER JOIN stores s ON s.store_id = p.store_id
+        WHERE oi.order_id = ? AND s.retailer_id = ?
+        ORDER BY oi.order_item_id ASC
+      `,
+      [orderId, retailerId]
+    );
+  }
+
+  async retailerCanManageOrder(retailerId, orderId) {
+    const result = await db.query(
+      `
+        SELECT o.order_id
+        FROM orders o
+        INNER JOIN order_items oi ON oi.order_id = o.order_id
+        INNER JOIN products p ON p.product_id = oi.product_id
+        INNER JOIN stores s ON s.store_id = p.store_id
+        WHERE o.order_id = ? AND s.retailer_id = ?
+        LIMIT 1
+      `,
+      [orderId, retailerId]
+    );
+
+    return result.length > 0;
+  }
+
+  async updateOrderStatus(orderId, statusId) {
+    return db.query(
+      "UPDATE orders SET order_status_id = ? WHERE order_id = ?",
+      [statusId, orderId]
+    );
+  }
 }
 
 module.exports = { Order };

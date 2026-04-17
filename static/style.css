@@ -899,6 +899,14 @@ footer {
   gap: 20px;
 }
 
+.retailer-order-form {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) auto;
+  gap: 14px;
+  align-items: end;
+}
+
 .order-card {
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.65);
@@ -967,6 +975,12 @@ footer {
   flex: 1;
   display: grid;
   gap: 4px;
+}
+
+@media (max-width: 760px) {
+  .retailer-order-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Retailer Dashboard */

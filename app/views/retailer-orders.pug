@@ -1,0 +1,75 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Manage Orders
+    link(rel="stylesheet" href="/style.css")
+  body
+    include products-navbar.pug
+
+    section.retailer-dashboard
+      .retailer-dashboard-content
+        .page-title-row
+          div
+            h2 Manage Orders
+            p Track customer purchases for your products and update their status.
+
+        if authError
+          .auth-message.auth-message-error= authError
+        if authSuccess
+          .auth-message.auth-message-success= authSuccess
+
+        if orders.length
+          .orders-list
+            each order in orders
+              article.order-card
+                .order-card-header
+                  div
+                    h3 Order ##{order.order_id}
+                    p.order-meta #{order.customer_name} • #{order.customer_email}
+                    p.order-meta Placed on #{new Date(order.created_at).toLocaleDateString()}
+                  .order-badge= order.status_name || "Pending"
+
+                .order-summary
+                  .summary-row
+                    span Items
+                    strong= order.item_count
+                  .summary-row
+                    span Units
+                    strong= order.total_units
+                  .summary-row
+                    span Your Order Value
+                    strong £#{Number(order.retailer_total || 0).toFixed(2)}
+
+                .order-address
+                  strong Delivery Address
+                  p #{order.street}, #{order.city}, #{order.state}, #{order.postal_code}, #{order.country}
+
+                form.retailer-order-form(action=`/retailer/orders/${order.order_id}/update` method="post")
+                  .filter-field
+                    label(for=`status-${order.order_id}`) Update Status
+                    .form-select-wrap
+                      select.form-select(id=`status-${order.order_id}` name="order_status_id")
+                        each status in statuses
+                          option(value=status.order_status_id selected=Number(status.order_status_id) === Number(order.order_status_id))= status.name
+                  button.filter-button(type="submit") Save Status
+
+                if order.items.length
+                  .order-items
+                    each item in order.items
+                      .order-item
+                        if item.image_url
+                          img.order-item-image(src=item.image_url alt=item.name)
+                        else
+                          .order-item-image.cart-item-image-empty
+                        .order-item-details
+                          strong= item.name
+                          span #{item.store_name} • Qty #{item.quantity}
+                        strong £#{Number(item.price).toFixed(2)}
+        else
+          .dashboard-empty
+            h3 No orders yet
+            p Customer orders for your products will appear here once they start checking out.
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

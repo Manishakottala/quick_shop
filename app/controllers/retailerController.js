@@ -1,4 +1,5 @@
 const { Product } = require("../models/product");
+const { Order } = require("../models/order");
 const { Store } = require("../models/store");
 const { deleteUploadedImage, getUploadedImagePath } = require("../middleware/upload");
 
@@ -223,10 +224,65 @@ async function deleteRetailerProduct(req, res) {
   }
 }
 
+async function renderRetailerOrders(req, res) {
+  try {
+    const order = new Order(req.session.uid);
+    const statuses = await order.ensureRetailerStatuses();
+    const orders = await order.getRetailerOrders(req.session.uid);
+
+    for (const currentOrder of orders) {
+      currentOrder.items = await order.getRetailerOrderItems(req.session.uid, currentOrder.order_id);
+    }
+
+    return res.render("retailer-orders", {
+      orders,
+      statuses
+    });
+  } catch (err) {
+    console.error("Error in /retailer/orders:", err);
+    return res.status(500).send("Database error");
+  }
+}
+
+async function updateRetailerOrderStatus(req, res) {
+  const orderId = Number(req.params.id);
+  const statusId = Number(req.body.order_status_id);
+
+  if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(statusId) || statusId <= 0) {
+    return res.redirect("/retailer/orders?error=Invalid+order+status+update.");
+  }
+
+  try {
+    const order = new Order(req.session.uid);
+    const canManageOrder = await order.retailerCanManageOrder(req.session.uid, orderId);
+
+    if (!canManageOrder) {
+      return res.redirect("/retailer/orders?error=Order+not+found.");
+    }
+
+    const statuses = await order.ensureRetailerStatuses();
+    const matchingStatus = statuses.find(function(currentStatus) {
+      return Number(currentStatus.order_status_id) === statusId;
+    });
+
+    if (!matchingStatus) {
+      return res.redirect("/retailer/orders?error=Select+a+valid+status.");
+    }
+
+    await order.updateOrderStatus(orderId, statusId);
+    return res.redirect("/retailer/orders?success=Order+status+updated.");
+  } catch (err) {
+    console.error("Error updating retailer order status:", err);
+    return res.redirect("/retailer/orders?error=Unable+to+update+order+status.");
+  }
+}
+
 module.exports = {
   createRetailerProduct,
   deleteRetailerProduct,
   renderDashboard,
+  renderRetailerOrders,
   renderRetailerProducts,
+  updateRetailerOrderStatus,
   updateRetailerProduct
 };
