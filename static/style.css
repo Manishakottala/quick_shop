@@ -970,6 +970,91 @@ footer {
   margin: 0 auto;
 }
 
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.profile-card h3 {
+  margin-bottom: 18px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-details {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(76, 63, 50, 0.08);
+}
+
+.profile-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #59656f;
+}
+
+.profile-detail strong,
+.profile-store-head strong {
+  font-size: 1rem;
+}
+
+.profile-role {
+  text-transform: capitalize;
+}
+
+.profile-detail-static {
+  justify-content: flex-start;
+  min-height: 52px;
+}
+
+.profile-store-list {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-store-item {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(76, 63, 50, 0.08);
+}
+
+.profile-store-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.profile-store-item p {
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.profile-store-metrics {
+  font-weight: 700;
+  color: var(--accent-deep);
+}
+
 .page-title-row {
   display: flex;
   align-items: center;
@@ -1155,6 +1240,10 @@ footer {
 
   .retailer-products-filters {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
   }
 }
 

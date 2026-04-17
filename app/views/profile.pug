@@ -1,0 +1,83 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Profile
+    link(rel="stylesheet" href="/style.css")
+  body
+    include products-navbar.pug
+
+    section.retailer-dashboard
+      .retailer-dashboard-content.retailer-profile-panel
+        .dashboard-hero
+          h2 Profile
+
+        if authError
+          p.auth-message.auth-message-error= authError
+        if authSuccess
+          p.auth-message.auth-message-success= authSuccess
+
+        .profile-grid
+          .retailer-panel.profile-card
+            h3 Account Details
+            form.profile-form(action="/profile" method="post")
+              .form-group
+                label(for="name") Name
+                input#name(type="text" name="name" required value=profile.name)
+
+              .form-group
+                label(for="email") Email
+                input#email(type="email" name="email" required value=profile.email)
+
+              .form-group
+                label(for="phone") Phone
+                input#phone(type="text" name="phone" value=profile.phone || "")
+
+              .form-group
+                label Role
+                .profile-detail.profile-detail-static
+                  strong.profile-role= profile.role
+
+              .retailer-form-actions
+                button.primary-action(type="submit") Save Changes
+
+          if profile.role === "retailer"
+            .retailer-panel.profile-card
+              h3 Store Summary
+              if stores.length
+                .profile-store-list
+                  each store in stores
+                    form.profile-store-item(action=`/store/${store.store_id}/update` method="post")
+                      .form-group
+                        label(for=`store_name_${store.store_id}`) Store Name
+                        input(
+                          id=`store_name_${store.store_id}`
+                          type="text"
+                          name="store_name"
+                          required
+                          value=store.store_name
+                        )
+
+                      .form-group
+                        label(for=`description_${store.store_id}`) Store Description
+                        textarea(
+                          id=`description_${store.store_id}`
+                          name="description"
+                          rows="4"
+                        )= store.description || ""
+
+                      .profile-store-head
+                        span.store-badge #{store.total_products} products
+
+                      .profile-store-metrics
+                        span Stock #{store.total_stock}
+
+                      .retailer-form-actions
+                        button.primary-action(type="submit") Update Store
+              else
+                .dashboard-empty
+                  h3 No stores yet
+                  p Your retailer account is active, but no store summary is available yet.
+
+    footer
+      p © 2026 QuickShop. All rights reserved.
