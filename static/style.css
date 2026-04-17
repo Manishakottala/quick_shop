@@ -635,6 +635,26 @@ footer {
   min-height: 78px;
 }
 
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.product-rating-stars {
+  color: #d48a1f;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.product-rating-text,
+.review-meta {
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
 .product-price {
   font-size: 1.7rem;
   font-weight: 800;
@@ -749,6 +769,46 @@ footer {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+}
+
+.product-reviews-section {
+  max-width: 1120px;
+  margin: 28px auto 0;
+  display: grid;
+  gap: 20px;
+}
+
+.review-form-card,
+.review-card {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.review-form {
+  display: grid;
+  gap: 14px;
+}
+
+.review-list {
+  display: grid;
+  gap: 16px;
+}
+
+.review-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.review-comment {
+  color: var(--text);
+  line-height: 1.7;
 }
 
 /* Cart */

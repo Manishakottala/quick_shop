@@ -18,6 +18,9 @@ html(lang="en")
         .product-detail-info
           a.back-link(href="/products") ← Back to Products
           h2= product.name
+          .product-rating.product-rating-detail
+            span.product-rating-stars= "★".repeat(Math.round(Number(product.average_rating || 0))) + "☆".repeat(5 - Math.round(Number(product.average_rating || 0)))
+            span.product-rating-text #{Number(product.average_rating || 0).toFixed(1)} average from #{product.review_count} review#{Number(product.review_count) === 1 ? '' : 's'}
           .product-detail-price £#{product.price}
           p.product-detail-description= product.description
 
@@ -32,6 +35,43 @@ html(lang="en")
                 input(type="hidden" name="quantity" value="1")
                 button.primary-action(type="submit") Add to Cart
             a.secondary-action(href="/products") Continue Shopping
+
+      .product-reviews-section
+        if canReview
+          .review-form-card
+            h3= userReview ? "Update Your Review" : "Write a Review"
+            form.review-form(action=`/products/${product.id}/reviews` method="post")
+              .form-group
+                label(for="rating") Rating
+                .form-select-wrap
+                  select.form-select#rating(name="rating" required)
+                    option(value="") Select rating
+                    - const currentRating = userReview ? Number(userReview.rating) : 0
+                    each value in [1, 2, 3, 4, 5]
+                      option(value=value selected=currentRating === value)= `${value} Star${value === 1 ? '' : 's'}`
+              .form-group
+                label(for="comment") Review
+                textarea#comment(name="comment" rows="5" placeholder="Share what you liked about this product.")= userReview ? userReview.comment : ""
+              button.primary-action(type="submit") Save Review
+        else if userRole !== "retailer"
+          .review-form-card
+            h3 Reviews
+            p.auth-text Buy this product first to leave a rating and review.
+
+        if reviews.length
+          .review-list
+            each review in reviews
+              article.review-card
+                .review-card-header
+                  strong= review.name
+                  span.product-rating-stars= "★".repeat(Number(review.rating || 0)) + "☆".repeat(5 - Number(review.rating || 0))
+                p.review-meta Reviewed on #{new Date(review.created_at).toLocaleDateString()}
+                if review.comment
+                  p.review-comment= review.comment
+        else
+          .products-empty
+            h3 No reviews yet
+            p Ratings and reviews for this product will appear here.
 
     footer
       p © 2026 QuickShop. All rights reserved.

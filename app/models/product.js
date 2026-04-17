@@ -50,6 +50,8 @@ class Product {
       SELECT
         p.*,
         p.product_id AS id,
+        COALESCE(AVG(r.rating), 0) AS average_rating,
+        COUNT(DISTINCT r.review_id) AS review_count,
         (
           SELECT pi.image_url
           FROM product_images pi
@@ -58,6 +60,7 @@ class Product {
           LIMIT 1
         ) AS image_url
       FROM products p
+      LEFT JOIN reviews r ON r.product_id = p.product_id
       WHERE 1=1
     `;
     const params = [];
@@ -77,6 +80,7 @@ class Product {
       params.push(maxPrice);
     }
 
+    sql += " GROUP BY p.product_id";
     sql += " ORDER BY p.created_at DESC, p.product_id DESC";
 
     const products = await db.query(sql, params);
@@ -97,6 +101,8 @@ class Product {
         SELECT
           p.*,
           p.product_id AS id,
+          COALESCE(AVG(r.rating), 0) AS average_rating,
+          COUNT(DISTINCT r.review_id) AS review_count,
           (
             SELECT pi.image_url
             FROM product_images pi
@@ -105,13 +111,90 @@ class Product {
             LIMIT 1
           ) AS image_url
         FROM products p
+        LEFT JOIN reviews r ON r.product_id = p.product_id
         WHERE p.product_id = ?
+        GROUP BY p.product_id
         LIMIT 1
       `,
       [productId]
     );
 
     return result[0] || null;
+  }
+
+  async getReviews(productId) {
+    return db.query(
+      `
+        SELECT
+          r.review_id,
+          r.rating,
+          r.comment,
+          r.created_at,
+          u.user_id,
+          u.name
+        FROM reviews r
+        INNER JOIN users u ON u.user_id = r.user_id
+        WHERE r.product_id = ?
+        ORDER BY r.created_at DESC, r.review_id DESC
+      `,
+      [productId]
+    );
+  }
+
+  async getUserReview(productId, userId) {
+    const result = await db.query(
+      `
+        SELECT review_id, rating, comment, created_at
+        FROM reviews
+        WHERE product_id = ? AND user_id = ?
+        LIMIT 1
+      `,
+      [productId, userId]
+    );
+
+    return result[0] || null;
+  }
+
+  async userHasPurchasedProduct(productId, userId) {
+    const result = await db.query(
+      `
+        SELECT oi.order_item_id
+        FROM order_items oi
+        INNER JOIN orders o ON o.order_id = oi.order_id
+        WHERE oi.product_id = ? AND o.user_id = ?
+        LIMIT 1
+      `,
+      [productId, userId]
+    );
+
+    return result.length > 0;
+  }
+
+  async addOrUpdateReview(productId, userId, rating, comment) {
+    const existingReview = await this.getUserReview(productId, userId);
+
+    if (existingReview) {
+      await db.query(
+        `
+          UPDATE reviews
+          SET rating = ?, comment = ?
+          WHERE review_id = ?
+        `,
+        [rating, comment, existingReview.review_id]
+      );
+
+      return existingReview.review_id;
+    }
+
+    const result = await db.query(
+      `
+        INSERT INTO reviews (product_id, user_id, rating, comment)
+        VALUES (?, ?, ?, ?)
+      `,
+      [productId, userId, rating, comment]
+    );
+
+    return result.insertId;
   }
 
   async getRetailerById(userId, productId) {
