@@ -867,6 +867,21 @@ footer {
   font-size: 1.4rem;
 }
 
+.checkout-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.checkout-form .form-group {
+  margin-bottom: 0;
+}
+
+.checkout-form .primary-action,
+.checkout-form .secondary-action {
+  width: 100%;
+}
+
 .summary-row {
   display: flex;
   justify-content: space-between;

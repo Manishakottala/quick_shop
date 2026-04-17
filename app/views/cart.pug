@@ -48,7 +48,24 @@ html(lang="en")
               .summary-row
                 span Subtotal
                 strong £#{summary.subtotal.toFixed(2)}
-              a.primary-action(href="/products") Continue Shopping
+              form.checkout-form(action="/cart/checkout" method="post")
+                .form-group
+                  label(for="street") Street
+                  input#street(type="text" name="street" placeholder="Street address" required)
+                .form-group
+                  label(for="city") City
+                  input#city(type="text" name="city" placeholder="City" required)
+                .form-group
+                  label(for="state") State
+                  input#state(type="text" name="state" placeholder="State" required)
+                .form-group
+                  label(for="postal_code") Postal Code
+                  input#postal_code(type="text" name="postal_code" placeholder="Postal code" required)
+                .form-group
+                  label(for="country") Country
+                  input#country(type="text" name="country" placeholder="Country" required)
+                button.primary-action(type="submit") Checkout
+              a.secondary-action(href="/products") Continue Shopping
         else
           .products-empty
             h3 Your cart is empty

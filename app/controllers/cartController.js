@@ -1,4 +1,5 @@
 const { Cart } = require("../models/cart");
+const { Order } = require("../models/order");
 const { Product } = require("../models/product");
 
 async function renderCart(req, res) {
@@ -90,8 +91,55 @@ async function removeCartItem(req, res) {
   }
 }
 
+async function checkout(req, res) {
+  const street = typeof req.body.street === "string" ? req.body.street.trim() : "";
+  const city = typeof req.body.city === "string" ? req.body.city.trim() : "";
+  const state = typeof req.body.state === "string" ? req.body.state.trim() : "";
+  const postalCode = typeof req.body.postal_code === "string" ? req.body.postal_code.trim() : "";
+  const country = typeof req.body.country === "string" ? req.body.country.trim() : "";
+
+  if (!street || !city || !state || !postalCode || !country) {
+    return res.redirect("/cart?error=All+checkout+address+fields+are+required.");
+  }
+
+  try {
+    const cart = new Cart(req.session.uid);
+    const items = await cart.getItems();
+
+    if (!items.length) {
+      return res.redirect("/cart?error=Your+cart+is+empty.");
+    }
+
+    const order = new Order(req.session.uid);
+    const orderId = await order.placeOrder(
+      {
+        street,
+        city,
+        state,
+        postalCode,
+        country
+      },
+      items
+    );
+
+    return res.redirect(`/cart?success=Order+%23${orderId}+placed+successfully.`);
+  } catch (err) {
+    if (err.message === "INSUFFICIENT_STOCK") {
+      return res.redirect("/cart?error=One+or+more+items+do+not+have+enough+stock.");
+    }
+
+    if (err.message === "EMPTY_CART") {
+      return res.redirect("/cart?error=Your+cart+is+empty.");
+    }
+
+    console.error("Error during checkout:", err);
+    return res.redirect("/cart?error=Unable+to+complete+checkout.");
+  }
+}
+
 module.exports = {
   addToCart,
+  checkout,
   removeCartItem,
   renderCart,
   updateCartItem

@@ -24,6 +24,11 @@ async function query(sql, params) {
   return rows;
 }
 
-module.exports = {
-  query,
+async function getConnection() {
+  return pool.getConnection();
 }
+
+module.exports = {
+  getConnection,
+  query,
+};
