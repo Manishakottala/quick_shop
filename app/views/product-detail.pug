@@ -21,8 +21,16 @@ html(lang="en")
           .product-detail-price £#{product.price}
           p.product-detail-description= product.description
 
+          if authError
+            .auth-message.auth-message-error= authError
+          if authSuccess
+            .auth-message.auth-message-success= authSuccess
+
           .product-detail-actions
-            a.primary-action(href="/products") Add to Cart
+            if userRole !== "retailer"
+              form(action=`/cart/add/${product.id}` method="post")
+                input(type="hidden" name="quantity" value="1")
+                button.primary-action(type="submit") Add to Cart
             a.secondary-action(href="/products") Continue Shopping
 
     footer

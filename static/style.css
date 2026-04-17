@@ -125,6 +125,7 @@ img {
 .about,
 .contact,
 .products,
+.cart-page,
 .auth-page,
 .product-detail-page,
 .retailer-dashboard {
@@ -138,6 +139,7 @@ img {
 
 .hero-content,
 .products-content,
+.cart-content,
 .product-detail-card,
 .auth-card,
 .contact-form,
@@ -150,6 +152,7 @@ img {
 .about::before,
 .contact::before,
 .products::before,
+.cart-page::before,
 .auth-page::before,
 .product-detail-page::before,
 .retailer-dashboard::before {
@@ -179,6 +182,7 @@ img {
 .about h2,
 .contact h2,
 .products-content h2,
+.cart-content h2,
 .auth-card h2,
 .product-detail-info h2 {
   font-size: clamp(2.3rem, 4vw, 4.1rem);
@@ -190,6 +194,7 @@ img {
 .about-text,
 .contact-text,
 .products-content > p,
+.cart-content > p,
 .auth-text,
 .product-detail-description {
   color: var(--text-soft);
@@ -513,7 +518,16 @@ footer {
   text-align: center;
 }
 
+.cart-content {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
 .products-content > p {
+  margin-bottom: 34px;
+}
+
+.cart-content > p {
   margin-bottom: 34px;
 }
 
@@ -632,6 +646,22 @@ footer {
   width: 100%;
 }
 
+.product-card-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.product-card-actions form,
+.product-detail-actions form {
+  margin: 0;
+}
+
+.product-card-actions .secondary-action,
+.product-card-actions .add-to-cart,
+.product-detail-actions .primary-action {
+  width: 100%;
+}
+
 .products-empty {
   padding: 56px 28px;
   border-radius: var(--radius-md);
@@ -719,6 +749,134 @@ footer {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+}
+
+/* Cart */
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 360px);
+  gap: 24px;
+  align-items: start;
+}
+
+.cart-items {
+  display: grid;
+  gap: 18px;
+}
+
+.cart-item-card,
+.cart-summary {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+}
+
+.cart-item-card {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 20px;
+  align-items: center;
+}
+
+.cart-item-image,
+.cart-item-image-empty {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
+.cart-item-details h3 {
+  margin-bottom: 8px;
+}
+
+.cart-item-description,
+.summary-row span {
+  color: var(--text-soft);
+}
+
+.cart-item-price {
+  margin-top: 10px;
+  font-weight: 800;
+  color: var(--accent-deep);
+}
+
+.cart-item-actions {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.cart-quantity-form {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.cart-quantity-form label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #59656f;
+}
+
+.cart-quantity-form input {
+  width: 90px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(76, 63, 50, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.cart-quantity-form button,
+.cart-remove {
+  min-height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cart-quantity-form button {
+  color: #fffdf9;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+}
+
+.cart-remove {
+  color: #8a1c1c;
+  background: rgba(202, 63, 63, 0.12);
+  border: 1px solid rgba(202, 63, 63, 0.2);
+}
+
+.cart-line-total {
+  font-size: 1.1rem;
+  color: var(--accent-deep);
+}
+
+.cart-summary {
+  padding: 24px;
+  position: sticky;
+  top: 110px;
+}
+
+.cart-summary h3 {
+  margin-bottom: 18px;
+  font-size: 1.4rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(76, 63, 50, 0.08);
+}
+
+.summary-row:last-of-type {
+  margin-bottom: 18px;
 }
 
 /* Retailer Dashboard */
@@ -1234,6 +1392,10 @@ footer {
     grid-template-columns: 1fr;
   }
 
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-stats {
     grid-template-columns: 1fr 1fr;
   }
@@ -1264,6 +1426,7 @@ footer {
   .about,
   .contact,
   .products,
+  .cart-page,
   .auth-page,
   .product-detail-page,
   .retailer-dashboard,
@@ -1275,6 +1438,7 @@ footer {
   .about::before,
   .contact::before,
   .products::before,
+  .cart-page::before,
   .auth-page::before,
   .product-detail-page::before,
   .retailer-dashboard::before {
@@ -1331,6 +1495,15 @@ footer {
 
   .product-detail-actions {
     flex-direction: column;
+  }
+
+  .cart-item-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item-actions,
+  .cart-quantity-form {
+    justify-items: start;
   }
 
   .primary-action,

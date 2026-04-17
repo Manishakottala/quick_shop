@@ -1,0 +1,59 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title QuickShop | Cart
+    link(rel="stylesheet" href="/style.css")
+  body
+    include products-navbar.pug
+
+    section.cart-page
+      .cart-content
+        h2 Your Cart
+        p Review the items you added before checkout.
+
+        if authError
+          .auth-message.auth-message-error= authError
+        if authSuccess
+          .auth-message.auth-message-success= authSuccess
+
+        if items.length
+          .cart-layout
+            .cart-items
+              each item in items
+                .cart-item-card
+                  .cart-item-media
+                    if item.image_url
+                      img.cart-item-image(src=item.image_url alt=item.name)
+                    else
+                      .cart-item-image.cart-item-image-empty
+                  .cart-item-details
+                    h3
+                      a.product-link(href=`/products/${item.product_id}`)= item.name
+                    p.cart-item-description= item.description
+                    p.cart-item-price £#{item.price}
+                  .cart-item-actions
+                    form.cart-quantity-form(action=`/cart/item/${item.cart_item_id}/update` method="post")
+                      label(for=`quantity-${item.cart_item_id}`) Qty
+                      input(id=`quantity-${item.cart_item_id}` type="number" name="quantity" min="0" max=item.stock value=item.quantity)
+                      button(type="submit") Update
+                    form(action=`/cart/item/${item.cart_item_id}/delete` method="post")
+                      button.cart-remove(type="submit") Remove
+                    strong.cart-line-total £#{Number(item.line_total).toFixed(2)}
+            aside.cart-summary
+              h3 Summary
+              .summary-row
+                span Items
+                strong= summary.itemCount
+              .summary-row
+                span Subtotal
+                strong £#{summary.subtotal.toFixed(2)}
+              a.primary-action(href="/products") Continue Shopping
+        else
+          .products-empty
+            h3 Your cart is empty
+            p Add products to your cart to see them here.
+            a.primary-action(href="/products") Browse Products
+
+    footer
+      p © 2026 QuickShop. All rights reserved.

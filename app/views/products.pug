@@ -13,6 +13,11 @@ html(lang="en")
         h2 Our Products
         p Discover our wide range of products.
 
+        if authError
+          .auth-message.auth-message-error= authError
+        if authSuccess
+          .auth-message.auth-message-success= authSuccess
+
         form.products-filters(action="/products" method="get")
           .filter-field.filter-search
             label(for="search") Search
@@ -45,7 +50,12 @@ html(lang="en")
                   a.product-link(href=`/products/${product.id}`)= product.name
                 p.product-description= product.description
                 .product-price £#{product.price}
-                a.add-to-cart(href=`/products/${product.id}`) View Details
+                .product-card-actions
+                  a.secondary-action(href=`/products/${product.id}`) View Details
+                  if userRole !== "retailer"
+                    form(action=`/cart/add/${product.id}` method="post")
+                      input(type="hidden" name="quantity" value="1")
+                      button.add-to-cart(type="submit") Add to Cart
         else
           .products-empty
             h3 No products found

@@ -6,6 +6,8 @@ nav.navbar
     li: a(href="/contact") Contact
     li: a(href="/products") Products
     if loggedIn
+      if userRole !== "retailer"
+        li: a(href="/cart") Cart
       li: a(href="/profile") Profile
       li: a(href="/logout") Logout
     else

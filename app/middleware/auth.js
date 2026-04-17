@@ -32,6 +32,18 @@ function requireRetailer(req, res, next) {
   return next();
 }
 
+function requireCustomer(req, res, next) {
+  if (!req.session.loggedIn) {
+    return res.redirect("/login?error=Please+log+in+to+continue.");
+  }
+
+  if (req.session.userRole === "retailer") {
+    return res.redirect("/retailer/dashboard?error=Customer+access+required.");
+  }
+
+  return next();
+}
+
 function redirectIfLoggedIn(req, res, next) {
   if (req.session.loggedIn) {
     return res.redirect(getPostLoginRedirect(req));
@@ -44,6 +56,7 @@ module.exports = {
   attachSessionLocals,
   getPostLoginRedirect,
   redirectIfLoggedIn,
+  requireCustomer,
   requireLogin,
   requireRetailer
 };
