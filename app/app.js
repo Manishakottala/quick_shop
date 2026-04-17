@@ -10,6 +10,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const productRoutes = require("./routes/productRoutes");
 const retailerRoutes = require("./routes/retailerRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use(profileRoutes);
 app.use(productRoutes);
 app.use(retailerRoutes);
 app.use(cartRoutes);
+app.use(orderRoutes);
 
 app.listen(3000, function() {
   console.log("Server running at http://127.0.0.1:3000/");

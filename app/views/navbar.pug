@@ -8,6 +8,7 @@ nav.navbar
     if loggedIn
       if userRole !== "retailer"
         li: a(href="/cart") Cart
+        li: a(href="/orders") Orders
       li: a(href="/profile") Profile
       li: a(href="/logout") Logout
     else
